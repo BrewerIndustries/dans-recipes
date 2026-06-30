@@ -46,10 +46,8 @@ function render(r) {
       </div>`).join('')}
     </div>` : '';
   const notesHtml = r.notes ? `<div class="notes-block">${r.notes}</div>` : '';
-  const sourceHtml = r.source_url
-    ? `<a class="source-link" href="${esc(r.source_url)}" target="_blank" rel="noopener">↗ View Original</a>`
-    : r.source_image
-    ? `<a class="source-link source-image-link" href="/source-images/${esc(r.source_image)}" target="_blank" rel="noopener">↗ View Original</a>`
+  const sourceHtml = (r.source_url || r.source_image)
+    ? `<button class="source-link" onclick="showSourceModal()">↗ View Original</button>`
     : '';
 
   const madeCount = madeLog.length;
@@ -58,18 +56,27 @@ function render(r) {
     ? `<span class="made-status never">Never made</span>`
     : `<span class="made-status made">Made ${madeCount} time${madeCount===1?'':'s'}${lastMade ? ' · last ' + lastMade : ''}</span>`;
 
+  const heroImgHtml = r.image
+    ? `<img class="recipe-hero-img" src="${esc(r.image)}" alt="${esc(r.title)}" loading="lazy">`
+    : '';
+
   content.innerHTML = `
     <div class="recipe-detail-toolbar">
       <button class="edit-btn" onclick="enterEditMode()">✏ Edit</button>
     </div>
-    <h1 class="recipe-title">${r.title}</h1>
-    <div class="recipe-meta">
-      <span class="recipe-category-badge">${r.category}</span>
-      ${yieldHtml}
-      ${madeStatusHtml}
-      ${sourceHtml}
+    <div class="recipe-hero">
+      <div class="recipe-hero-text">
+        <h1 class="recipe-title">${r.title}</h1>
+        <div class="recipe-meta">
+          <span class="recipe-category-badge">${r.category}</span>
+          ${yieldHtml}
+          ${madeStatusHtml}
+          ${sourceHtml}
+        </div>
+        <div class="recipe-tags-row">${tagsHtml}</div>
+      </div>
+      ${heroImgHtml}
     </div>
-    <div class="recipe-tags-row">${tagsHtml}</div>
     <hr class="recipe-divider" />
     <div class="recipe-body">
       <div class="ingredients-col">
@@ -409,6 +416,37 @@ async function doDeleteRecipe() {
   const res = await fetch(`/api/recipes/${id}`, {method:'DELETE'});
   if (res.ok) window.location.href='/';
   else alert('Delete failed.');
+}
+
+function showSourceModal() {
+  const r = currentRecipe;
+  let body = '';
+  if (r.source_url) {
+    body = `
+      <div class="source-modal-url">
+        <p class="source-modal-label">Original source</p>
+        <p class="source-modal-link-text">${esc(r.source_url)}</p>
+        <a href="${esc(r.source_url)}" target="_blank" rel="noopener" class="save-btn source-modal-open-btn">↗ Open in New Tab</a>
+      </div>`;
+  } else if (r.source_image) {
+    const src = `/source-images/${esc(r.source_image)}`;
+    const ext = r.source_image.split('.').pop().toLowerCase();
+    body = ext === 'pdf'
+      ? `<div class="source-modal-url"><p class="source-modal-label">Source document</p><a href="${src}" target="_blank" class="save-btn">↗ Open PDF</a></div>`
+      : `<img src="${src}" alt="Original recipe" class="source-modal-image">`;
+  }
+  const overlay = document.createElement('div');
+  overlay.className = 'source-modal-overlay';
+  overlay.innerHTML = `
+    <div class="source-modal-box">
+      <div class="source-modal-header">
+        <span class="source-modal-title">View Original</span>
+        <button class="source-modal-close" onclick="this.closest('.source-modal-overlay').remove()">✕</button>
+      </div>
+      <div class="source-modal-body">${body}</div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 
 function esc(s) {

@@ -234,19 +234,23 @@ function renderGrid() {
   if (!results.length) { grid.innerHTML='<div class="empty-state"><p>No recipes found.</p></div>'; return; }
   results.forEach(recipe => {
     const card = document.createElement('a');
-    card.className = 'recipe-card';
     card.href = `/recipe/${recipe.id}`;
     const neverMade = !recipe.made_count || recipe.made_count === 0;
     const madeHtml = neverMade
       ? `<span class="card-never-made">never made</span>`
       : `<span class="card-made-count">made ${recipe.made_count}×</span>`;
+    const thumbHtml = recipe.image
+      ? `<img class="card-thumb" src="${recipe.image}" alt="" loading="lazy">`
+      : '';
+    card.className = `recipe-card${recipe.image ? ' has-thumb' : ''}`;
     card.innerHTML = `
       <div class="card-category">${recipe.category}</div>
       <div class="card-title">${recipe.title}</div>
       <div class="card-footer">
         <div class="card-tags">${(recipe.tags||[]).map(t=>`<span class="card-tag">${t}</span>`).join('')}</div>
         ${madeHtml}
-      </div>`;
+      </div>
+      ${thumbHtml}`;
     grid.appendChild(card);
   });
 }

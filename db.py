@@ -73,6 +73,23 @@ def init_db():
             except Exception:
                 pass  # column already exists
 
+        # Migration: make made_on nullable (original schema had NOT NULL)
+        pragma = conn.execute("PRAGMA table_info(recipe_made_log)").fetchall()
+        made_on_col = next((r for r in pragma if r['name'] == 'made_on'), None)
+        if made_on_col and made_on_col['notnull']:
+            conn.executescript("""
+                CREATE TABLE recipe_made_log_v2 (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    recipe_id TEXT NOT NULL,
+                    made_on TEXT,
+                    notes TEXT,
+                    created_at TEXT DEFAULT (datetime('now'))
+                );
+                INSERT INTO recipe_made_log_v2 SELECT * FROM recipe_made_log;
+                DROP TABLE recipe_made_log;
+                ALTER TABLE recipe_made_log_v2 RENAME TO recipe_made_log;
+            """)
+
 def _deserialize(row):
     d = dict(row)
     for field in ('tags', 'sections', 'variations'):

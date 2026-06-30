@@ -1080,3 +1080,134 @@ body {
   flex-shrink: 0;
 }
 .date-checkbox-label input[type="checkbox"] { cursor: pointer; }
+
+/* ── Source-link as button ───────────────────────────────────── */
+button.source-link {
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+/* ── Source modal ────────────────────────────────────────────── */
+.source-modal-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.source-modal-box {
+  background: var(--color-page);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.source-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.source-modal-title { font-weight: 700; font-size: 0.88rem; color: var(--color-text); }
+.source-modal-close {
+  background: none; border: none; cursor: pointer;
+  font-size: 1rem; color: var(--color-muted); padding: 0 4px; line-height: 1;
+}
+.source-modal-close:hover { color: var(--color-text); }
+.source-modal-body { overflow: auto; padding: 1rem; flex: 1; }
+.source-modal-image {
+  display: block;
+  max-width: 100%;
+  max-height: calc(90vh - 100px);
+  object-fit: contain;
+  margin: 0 auto;
+}
+.source-modal-url {
+  display: flex; flex-direction: column; gap: 0.75rem; min-width: 260px;
+}
+.source-modal-label {
+  font-size: 0.72rem; font-weight: 700; color: var(--color-muted);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.source-modal-link-text {
+  font-size: 0.82rem; color: var(--color-text);
+  word-break: break-all;
+  background: var(--color-bg);
+  padding: 0.4rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+.source-modal-open-btn { width: fit-content; }
+
+/* ── Card thumbnail ──────────────────────────────────────────── */
+.recipe-card { position: relative; }
+.card-thumb {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius);
+  object-fit: cover;
+  border: 2px solid var(--color-page);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.18);
+}
+.has-thumb .card-footer { padding-right: 4rem; }
+.has-thumb .card-title  { padding-right: 4rem; }
+
+/* ── Recipe hero (title + image) ─────────────────────────────── */
+.recipe-hero {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin-bottom: 0;
+}
+.recipe-hero-text { flex: 1; min-width: 0; }
+.recipe-hero-img {
+  width: 130px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+/* ── Mobile / tablet responsive ──────────────────────────────── */
+@media (max-width: 640px) {
+  .recipe-detail-inner { padding: 1.5rem 1.25rem; }
+  .recipe-title { font-size: 2.2rem; }
+  .recipe-hero { flex-direction: column-reverse; gap: 0.75rem; }
+  .recipe-hero-img { width: 100%; height: 200px; border-radius: var(--radius); }
+  .edit-grid { grid-template-columns: 1fr; }
+  .inline-log-form { flex-wrap: wrap; }
+  .inline-log-form input[type="date"] { flex: 1 1 auto; }
+  .inline-log-form input[type="text"] { flex: 1 1 100%; }
+  .delete-confirm-row { flex-wrap: wrap; }
+  .log-header-row { flex-wrap: wrap; gap: 0.4rem; }
+  .card-thumb { width: 46px; height: 46px; bottom: 0.6rem; right: 0.6rem; }
+  .has-thumb .card-footer { padding-right: 3.5rem; }
+  .has-thumb .card-title  { padding-right: 3.5rem; }
+  .edit-form-btns { flex-wrap: wrap; }
+  .delete-btn { margin-left: 0; }
+}
+
+@media (max-width: 480px) {
+  .header-inner { gap: 0.75rem; }
+  .site-title { font-size: 1.6rem; }
+  #zoom-slider { width: 60px; }
+  .zoom-label { display: none; }
+  .main-content { padding: 1rem 0.75rem 3rem; }
+  .recipe-detail { padding: 0 0.5rem 3rem; }
+  .recipe-detail-inner { padding: 1.25rem 0.9rem; }
+  .recipe-page-header { padding: 0.75rem 1rem; }
+  #recipe-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.9rem; }
+  .log-entry { flex-wrap: wrap; gap: 0.3rem; }
+  .log-entry-del { margin-left: auto; }
+  .source-modal-url { min-width: 0; }
+}

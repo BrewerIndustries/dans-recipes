@@ -5,8 +5,8 @@
   "category": "standalone",
   "status": { "prod": "live", "dev": "live" },
   "deploy": {
-    "prod": { "url": "http://100.102.159.57:5050/" },
-    "dev":  { "url": "http://100.102.159.57:5051/" }
+    "prod": { "url": "https://recipes.dabrewer.dev/" },
+    "dev":  { "url": "https://recipes.dev.dabrewer.dev/" }
   },
   "tech": ["FastAPI", "SQLite", "Python"],
   "repo": "https://github.com/BrewerIndustries/dans-recipes"

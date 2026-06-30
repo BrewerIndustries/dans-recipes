@@ -1,0 +1,34 @@
+{
+  "id": "appetizer-meatballs",
+  "title": "Appetizer Meatballs",
+  "category": "Appetizers",
+  "tags": ["meatballs", "party", "beef", "classic"],
+  "yield": "4 dozen",
+  "sections": [
+    {
+      "name": "Meatballs",
+      "ingredients": [
+        "1 Pound Ground Round",
+        "1 Egg",
+        "½ Cup Soft Bread Crumbs",
+        "¼ Cup Skim Milk",
+        "⅓ Cup Finely Chopped Onion",
+        "½ Teaspoon Worcestershire Sauce"
+      ]
+    },
+    {
+      "name": "Sauce",
+      "ingredients": [
+        "½ Cup Ketchup",
+        "¼ Cup Chopped Onion",
+        "⅓ Cup Sugar",
+        "⅓ Cup Vinegar",
+        "1 Tablespoon Worcestershire Sauce",
+        "⅛ Teaspoon Pepper"
+      ]
+    }
+  ],
+  "instructions": "Combine the first six ingredients; mix well. Shape into 1-in. balls. In a skillet over medium heat, brown meatballs; drain. Place in a 2½-qt. baking dish. Combine sauce ingredients. Pour over meatballs. Bake, uncovered, at 350°F for 50–60 minutes or until meatballs are done.",
+  "variations": null,
+  "notes": null
+}

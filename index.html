@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dan's Recipes</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="site-title">Dan's Recipes</a>
+    <div class="search-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input id="search-input" type="search" placeholder="Search recipes…" autocomplete="off" />
+    </div>
+    <div class="header-controls">
+      <span class="zoom-label">Zoom</span>
+      <input id="zoom-slider" type="range" min="0.8" max="1.4" step="0.05" value="1" />
+    </div>
+  </div>
+</header>
+
+<nav class="category-nav">
+  <div class="category-nav-inner">
+    <button class="cat-tab active" data-cat="All">All</button>
+  </div>
+</nav>
+
+<div class="main-content">
+  <div id="tag-bar"></div>
+  <p class="results-count" id="results-count"></p>
+  <div id="recipe-grid"></div>
+</div>
+
+<script src="js/fuse.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "id": "breakfast-sauce",
+  "title": "Breakfast Sauce",
+  "category": "Sauces/Dips",
+  "tags": ["mayo-based", "sauce", "breakfast", "sandwich"],
+  "yield": null,
+  "sections": [
+    {
+      "name": null,
+      "ingredients": [
+        "1½ Cup Mayonnaise",
+        "2 Tablespoons Mustard",
+        "1 Tablespoon Steak Sauce",
+        "1 Tablespoon Lemon Juice",
+        "¼ Teaspoon Dried Dill",
+        "¼ Teaspoon Salt",
+        "⅛ Teaspoon Ground Black Pepper"
+      ]
+    }
+  ],
+  "instructions": "Combine all ingredients. Use for your favorite breakfast sandwiches, wraps, and so much more.",
+  "variations": null,
+  "notes": null
+}

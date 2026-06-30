@@ -1,0 +1,26 @@
+{
+  "id": "caesar-dressing",
+  "title": "Caesar Dressing",
+  "category": "Sauces/Dips",
+  "tags": ["dressing", "salad", "mayo-based", "garlic"],
+  "yield": null,
+  "sections": [
+    {
+      "name": null,
+      "ingredients": [
+        "2 Tablespoons Minced Garlic (around 12 cloves)",
+        "1 Teaspoon Anchovy Paste",
+        "2 Tablespoons Freshly Squeezed Lemon Juice (from one lemon)",
+        "1 Teaspoon Dijon Mustard",
+        "1 Teaspoon Worcestershire Sauce",
+        "1 Cup Mayonnaise",
+        "½ Cup Nutritional Yeast",
+        "¼ Teaspoon Freshly Ground Black Pepper",
+        "¼ Teaspoon Garlic Salt"
+      ]
+    }
+  ],
+  "instructions": "In a medium bowl, whisk together the garlic, anchovy paste, lemon juice, Dijon mustard and Worcestershire sauce. Add the mayonnaise, Parmigiano-Reggiano, salt and pepper and whisk until well combined. Taste and adjust to your liking. The dressing will keep well in the fridge for about a week.",
+  "variations": null,
+  "notes": null
+}

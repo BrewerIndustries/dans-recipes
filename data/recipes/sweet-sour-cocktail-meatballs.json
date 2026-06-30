@@ -1,0 +1,34 @@
+{
+  "id": "sweet-sour-cocktail-meatballs",
+  "title": "Sweet and Sour Cocktail Meatballs",
+  "category": "Appetizers",
+  "tags": ["meatballs", "party", "turkey", "pineapple", "sweet-and-sour"],
+  "yield": "32 meatballs",
+  "sections": [
+    {
+      "name": "Meatballs",
+      "ingredients": [
+        "1 Pound Ground Turkey",
+        "¾ Cup Plain Dry Bread Crumbs",
+        "½ Cup Grey Poupon Dijon Mustard, divided",
+        "½ Cup Chopped Green Onions, divided",
+        "1 Egg, beaten",
+        "½ Teaspoon Ground Ginger",
+        "½ Teaspoon Ground Black Pepper"
+      ]
+    },
+    {
+      "name": "Sauce",
+      "ingredients": [
+        "1 (8-ounce) Can Pineapple Chunks, undrained",
+        "⅓ Cup Firmly Packed Light Brown Sugar",
+        "¼ Cup Apple Cider Vinegar",
+        "¼ Cup Diced Red Bell Pepper",
+        "1 Teaspoon Cornstarch"
+      ]
+    }
+  ],
+  "instructions": "Combine turkey, bread crumbs, ¼ cup mustard, ¼ cup green onions, egg, ginger and black pepper in large bowl. Shape into 32 (1-inch) balls. Place in greased 13×9×2-inch baking dish. Bake at 350°F for 20 minutes.\n\nCombine pineapple chunks with juice, sugar, vinegar, red bell pepper, cornstarch and remaining mustard and green onions in medium saucepan. Cook over medium heat until sauce thickens and begins to boil.\n\nSpoon pineapple sauce over meatballs. Bake 5 to 7 minutes more or until meatballs are done. Spoon into serving dish and serve with toothpicks.",
+  "variations": null,
+  "notes": null
+}

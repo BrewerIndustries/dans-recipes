@@ -1,0 +1,22 @@
+{
+  "id": "better-than-cf",
+  "title": "Better Than CF",
+  "category": "Sauces/Dips",
+  "tags": ["mayo-based", "sauce", "sweet", "honey", "bbq"],
+  "yield": null,
+  "sections": [
+    {
+      "name": null,
+      "ingredients": [
+        "¼ Cup Mayo",
+        "1 Tbsp BBQ Sauce",
+        "1 Tsp Mustard",
+        "1 Tbsp Honey",
+        "Salt and Pepper to taste"
+      ]
+    }
+  ],
+  "instructions": "Combine all ingredients and mix well. Adjust seasoning to taste.",
+  "variations": null,
+  "notes": null
+}

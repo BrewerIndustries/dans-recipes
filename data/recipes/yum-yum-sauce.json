@@ -1,0 +1,25 @@
+{
+  "id": "yum-yum-sauce",
+  "title": "Yum Yum Sauce",
+  "category": "Sauces/Dips",
+  "tags": ["mayo-based", "sauce", "japanese-style", "hibachi", "spicy"],
+  "yield": null,
+  "sections": [
+    {
+      "name": null,
+      "ingredients": [
+        "1 Cup Mayo",
+        "1 Tablespoon Ketchup",
+        "1½ Teaspoons Rice Vinegar",
+        "1 Tablespoon Mirin",
+        "1 Teaspoon Garlic Powder",
+        "½ Teaspoon Smoked Paprika",
+        "1 Tablespoon Garlic Chili Sauce",
+        "2 Tablespoons Sugar"
+      ]
+    }
+  ],
+  "instructions": "Combine all ingredients. Additional Rice Vinegar can be used instead of Mirin. If less spicy sauce is desired, cut back or omit the Garlic Chili Sauce.",
+  "variations": null,
+  "notes": null
+}

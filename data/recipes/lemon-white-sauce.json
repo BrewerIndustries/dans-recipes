@@ -1,0 +1,27 @@
+{
+  "id": "lemon-white-sauce",
+  "title": "Lemon White Sauce",
+  "category": "Sauces/Dips",
+  "tags": ["mayo-based", "sauce", "japanese-style", "hibachi", "lemon"],
+  "yield": null,
+  "sections": [
+    {
+      "name": null,
+      "ingredients": [
+        "1 Cup Mayo",
+        "1 Tablespoon Minced Garlic",
+        "1 Teaspoon Garlic Powder",
+        "1 Teaspoon Onion Powder",
+        "Zest of 1 Medium Lemon",
+        "Juice of 1 Medium Lemon",
+        "½ Teaspoon Salt",
+        "Fresh Cracked Black Pepper",
+        "Water to thin",
+        "Vinegar to adjust acidity"
+      ]
+    }
+  ],
+  "instructions": "Combine all ingredients except for water and/or vinegar. Thin out sauce by adding water in small increments. Adjust acidity by adding apple cider, champagne, white wine, or white vinegar.",
+  "variations": null,
+  "notes": null
+}

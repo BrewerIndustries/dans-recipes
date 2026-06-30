@@ -1,0 +1,25 @@
+{
+  "id": "cocktail-sauce",
+  "title": "Cocktail Sauce",
+  "category": "Sauces/Dips",
+  "tags": ["sauce", "seafood", "shrimp", "classic"],
+  "yield": null,
+  "sections": [
+    {
+      "name": null,
+      "ingredients": [
+        "½ Cup Chili Sauce",
+        "½ Cup Ketchup",
+        "2 Tablespoons Lemon Juice",
+        "1 to 2 Tablespoons Prepared Horseradish",
+        "1 Dash Worcestershire Sauce",
+        "1 Dash Tabasco",
+        "Salt, to taste",
+        "Freshly Ground Black Pepper"
+      ]
+    }
+  ],
+  "instructions": "Combine all ingredients. Serve with shrimp or your favorite seafood!",
+  "variations": null,
+  "notes": null
+}

@@ -1,0 +1,28 @@
+{
+  "id": "vegan-cream-cheese",
+  "title": "Vegan Cream Cheese",
+  "category": "Sauces/Dips",
+  "tags": ["vegan", "dairy-free", "spread", "nuts"],
+  "yield": null,
+  "sections": [
+    {
+      "name": null,
+      "ingredients": [
+        "2 Cups Raw Almonds or Cashews",
+        "¼ Cup Lemon Juice",
+        "¼ Cup Olive Oil",
+        "¼ Cup Water",
+        "1 Clove Garlic",
+        "1½ Tsp Salt",
+        "2 Tbsp Nutritional Yeast"
+      ]
+    }
+  ],
+  "instructions": "1. Place the nuts in a large bowl and cover with plenty of boiling water. Set aside for at least half an hour to soak then drain well.\n2. Place the drained nuts in a blender or food processor along with the lemon juice, olive oil, water, salt, garlic and nutritional yeast.\n3. Blend at a high speed until very smooth and creamy. Scrape down the sides as needed to make sure that there are no lumps left. If you need to you can add a drop more water or oil to adjust texture.\n4. Scrape the cheese into a bowl and cover. It is ready to eat right away but will firm up in the fridge and the flavours will mellow so I recommend refrigerating it overnight before eating.\n5. Store in an airtight container in the fridge for up to a week.",
+  "variations": [
+    { "name": "Garlic and Herb", "description": "Add extra garlic and parsley, basil, oregano, etc." },
+    { "name": "Lemon Mint", "description": "Add lemon juice and zest and fresh mint." },
+    { "name": "Cinnamon", "description": "Omit all garlic and nutritional yeast. Add cinnamon and warming spices." }
+  ],
+  "notes": null
+}

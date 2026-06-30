@@ -1,0 +1,27 @@
+{
+  "id": "tangy-mustard-aioli",
+  "title": "Tangy Mustard Aioli",
+  "category": "Sauces/Dips",
+  "tags": ["mayo-based", "sauce", "mustard", "aioli"],
+  "yield": null,
+  "sections": [
+    {
+      "name": null,
+      "ingredients": [
+        "Mayo",
+        "Garlic",
+        "Dijon",
+        "Steak Sauce",
+        "Apple Cider Vinegar",
+        "Fresh Cracked Pepper",
+        "Salt",
+        "Paprika",
+        "Onion Powder",
+        "Garlic Powder"
+      ]
+    }
+  ],
+  "instructions": "Combine all ingredients to taste. Adjust seasoning as needed.",
+  "variations": null,
+  "notes": "Amounts to taste — this is a pantry-feel sauce, build to your preference."
+}

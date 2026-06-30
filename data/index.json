@@ -17,79 +17,157 @@
       "id": "white-sauce",
       "title": "White Sauce",
       "category": "Sauces/Dips",
-      "tags": ["mayo-based", "sauce", "japanese-style", "hibachi"]
+      "tags": [
+        "mayo-based",
+        "sauce",
+        "japanese-style",
+        "hibachi"
+      ]
     },
     {
       "id": "yum-yum-sauce",
       "title": "Yum Yum Sauce",
       "category": "Sauces/Dips",
-      "tags": ["mayo-based", "sauce", "japanese-style", "hibachi", "spicy"]
+      "tags": [
+        "mayo-based",
+        "sauce",
+        "japanese-style",
+        "hibachi",
+        "spicy"
+      ]
     },
     {
       "id": "spicy-white-sauce",
       "title": "Spicy White Sauce",
       "category": "Sauces/Dips",
-      "tags": ["mayo-based", "sauce", "japanese-style", "hibachi", "spicy"]
+      "tags": [
+        "mayo-based",
+        "sauce",
+        "japanese-style",
+        "hibachi",
+        "spicy"
+      ]
     },
     {
       "id": "lemon-white-sauce",
       "title": "Lemon White Sauce",
       "category": "Sauces/Dips",
-      "tags": ["mayo-based", "sauce", "japanese-style", "hibachi", "lemon"]
+      "tags": [
+        "mayo-based",
+        "sauce",
+        "japanese-style",
+        "hibachi",
+        "lemon"
+      ]
     },
     {
       "id": "breakfast-sauce",
       "title": "Breakfast Sauce",
       "category": "Sauces/Dips",
-      "tags": ["mayo-based", "sauce", "breakfast", "sandwich"]
+      "tags": [
+        "mayo-based",
+        "sauce",
+        "breakfast",
+        "sandwich"
+      ]
     },
     {
       "id": "caesar-dressing",
       "title": "Caesar Dressing",
       "category": "Sauces/Dips",
-      "tags": ["dressing", "salad", "mayo-based", "garlic"]
+      "tags": [
+        "dressing",
+        "salad",
+        "mayo-based",
+        "garlic"
+      ]
     },
     {
       "id": "vegan-cream-cheese",
       "title": "Vegan Cream Cheese",
       "category": "Sauces/Dips",
-      "tags": ["vegan", "dairy-free", "spread", "nuts"]
+      "tags": [
+        "vegan",
+        "dairy-free",
+        "spread",
+        "nuts"
+      ]
     },
     {
       "id": "cocktail-sauce",
       "title": "Cocktail Sauce",
       "category": "Sauces/Dips",
-      "tags": ["sauce", "seafood", "shrimp", "classic"]
+      "tags": [
+        "sauce",
+        "seafood",
+        "shrimp",
+        "classic"
+      ]
     },
     {
       "id": "tangy-mustard-aioli",
       "title": "Tangy Mustard Aioli",
       "category": "Sauces/Dips",
-      "tags": ["mayo-based", "sauce", "mustard", "aioli"]
+      "tags": [
+        "mayo-based",
+        "sauce",
+        "mustard",
+        "aioli"
+      ]
     },
     {
       "id": "better-than-cf",
       "title": "Better Than CF",
       "category": "Sauces/Dips",
-      "tags": ["mayo-based", "sauce", "sweet", "honey", "bbq"]
+      "tags": [
+        "mayo-based",
+        "sauce",
+        "sweet",
+        "honey",
+        "bbq"
+      ]
     },
     {
       "id": "sweet-sour-cocktail-meatballs",
       "title": "Sweet and Sour Cocktail Meatballs",
       "category": "Appetizers",
-      "tags": ["meatballs", "party", "turkey", "pineapple", "sweet-and-sour"]
+      "tags": [
+        "meatballs",
+        "party",
+        "turkey",
+        "pineapple",
+        "sweet-and-sour"
+      ]
     },
     {
       "id": "appetizer-meatballs",
       "title": "Appetizer Meatballs",
       "category": "Appetizers",
-      "tags": ["meatballs", "party", "beef", "classic"]
+      "tags": [
+        "meatballs",
+        "party",
+        "beef",
+        "classic"
+      ]
     },
     {
       "id": "gf-lemon-poppyseed-cookies",
       "title": "Gluten Free Lemon Poppyseed Cookies with Earl Grey Glaze",
       "category": "Baking/Desserts",
-      "tags": ["gluten-free", "cookies", "lemon", "poppyseed", "earl-grey", "vegan-option"]
+      "tags": [
+        "gluten-free",
+        "cookies",
+        "lemon",
+        "poppyseed",
+        "earl-grey",
+        "vegan-option"
+      ]
+    },
+    {
+      "id": "better-than-takeout-sticky-chicken",
+      "title": "Better-Than-Takeout Sticky Chicken",
+      "category": "Mains",
+      "tags": []
     }
   ]
 }

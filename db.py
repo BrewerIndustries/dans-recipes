@@ -33,6 +33,8 @@ def init_db():
                 instructions TEXT DEFAULT '',
                 variations TEXT DEFAULT '[]',
                 notes TEXT,
+                source_url TEXT,
+                source_image TEXT,
                 created_at TEXT DEFAULT (datetime('now')),
                 updated_at TEXT DEFAULT (datetime('now'))
             );
@@ -63,6 +65,13 @@ def init_db():
             );
         """)
         conn.commit()
+        # Migrations for columns added after initial deploy
+        for col, typedef in [('source_url', 'TEXT'), ('source_image', 'TEXT')]:
+            try:
+                conn.execute(f"ALTER TABLE recipes ADD COLUMN {col} {typedef}")
+                conn.commit()
+            except Exception:
+                pass  # column already exists
 
 def _deserialize(row):
     d = dict(row)
@@ -107,8 +116,8 @@ def get_recipe(id):
 def create_recipe(data):
     with get_conn() as conn:
         conn.execute("""
-            INSERT INTO recipes (id, title, category, tags, yield, image, sections, instructions, variations, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO recipes (id, title, category, tags, yield, image, sections, instructions, variations, notes, source_url, source_image)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, [
             data['id'], data['title'], data['category'],
             json.dumps(data.get('tags', [])),
@@ -118,6 +127,8 @@ def create_recipe(data):
             data.get('instructions', ''),
             json.dumps(data.get('variations') or []),
             data.get('notes'),
+            data.get('source_url'),
+            data.get('source_image'),
         ])
         conn.commit()
     return data['id']
@@ -127,7 +138,7 @@ def update_recipe(id, data):
         conn.execute("""
             UPDATE recipes SET
                 title=?, category=?, tags=?, yield=?, image=?, sections=?,
-                instructions=?, variations=?, notes=?,
+                instructions=?, variations=?, notes=?, source_url=?, source_image=?,
                 updated_at=datetime('now')
             WHERE id=?
         """, [
@@ -139,8 +150,15 @@ def update_recipe(id, data):
             data.get('instructions', ''),
             json.dumps(data.get('variations') or []),
             data.get('notes'),
+            data.get('source_url'),
+            data.get('source_image'),
             id,
         ])
+        conn.commit()
+
+def set_source_image(id, filename):
+    with get_conn() as conn:
+        conn.execute("UPDATE recipes SET source_image=?, updated_at=datetime('now') WHERE id=?", [filename, id])
         conn.commit()
 
 def delete_recipe(id):

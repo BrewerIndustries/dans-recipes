@@ -993,3 +993,22 @@ body {
   background: var(--color-page);
   color: var(--color-text);
 }
+
+/* ── Source link ─────────────────────────────────────────────── */
+.source-link {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-decoration: none;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  margin-left: 0.4rem;
+  transition: color 0.15s, border-color 0.15s;
+}
+.source-link:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}

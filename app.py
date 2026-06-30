@@ -1,6 +1,6 @@
-import argparse, os
+import argparse, os, shutil
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,10 +32,14 @@ app = FastAPI(title="Dan's Recipes")
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+SOURCE_IMAGES_DIR = Path(config['db_path']).parent / "source-images"
+SOURCE_IMAGES_DIR.mkdir(exist_ok=True)
+
 # Mount static directories
 app.mount("/css", StaticFiles(directory="css"), name="css")
 app.mount("/js", StaticFiles(directory="js"), name="js")
 app.mount("/data", StaticFiles(directory="data"), name="data")
+app.mount("/source-images", StaticFiles(directory=str(SOURCE_IMAGES_DIR)), name="source-images")
 
 
 # ── HTML routes ────────────────────────────────────────────────
@@ -111,6 +115,19 @@ async def update_log(id: int, request: Request):
 async def delete_log(id: int, request: Request):
     db.delete_log_entry(id)
     return {"ok": True}
+
+# ── Source image upload ───────────────────────────────────────
+@app.post("/api/recipes/{id}/source-image")
+async def upload_source_image(id: str, file: UploadFile = File(...)):
+    if not db.get_recipe(id):
+        raise HTTPException(status_code=404, detail="Not found")
+    suffix = Path(file.filename).suffix.lower() or ".jpg"
+    dest = SOURCE_IMAGES_DIR / f"{id}{suffix}"
+    with dest.open("wb") as f:
+        shutil.copyfileobj(file.file, f)
+    filename = f"{id}{suffix}"
+    db.set_source_image(id, filename)
+    return {"filename": filename}
 
 # ── Made log endpoints ────────────────────────────────────────
 @app.get("/api/recipes/{id}/made")

@@ -46,6 +46,11 @@ function render(r) {
       </div>`).join('')}
     </div>` : '';
   const notesHtml = r.notes ? `<div class="notes-block">${r.notes}</div>` : '';
+  const sourceHtml = r.source_url
+    ? `<a class="source-link" href="${esc(r.source_url)}" target="_blank" rel="noopener">↗ View Original</a>`
+    : r.source_image
+    ? `<a class="source-link source-image-link" href="/source-images/${esc(r.source_image)}" target="_blank" rel="noopener">↗ View Original</a>`
+    : '';
 
   const madeCount = madeLog.length;
   const lastMade = madeLog.length ? madeLog[0].made_on : null;
@@ -62,6 +67,7 @@ function render(r) {
       <span class="recipe-category-badge">${r.category}</span>
       ${yieldHtml}
       ${madeStatusHtml}
+      ${sourceHtml}
     </div>
     <div class="recipe-tags-row">${tagsHtml}</div>
     <hr class="recipe-divider" />
@@ -274,6 +280,14 @@ function enterEditMode() {
           <textarea name="variations" rows="4">${esc(variationsValue)}</textarea>
         </label>
         <label class="edit-wide">Notes<textarea name="notes" rows="3">${esc(r.notes||'')}</textarea></label>
+        <label class="edit-wide">Source URL
+          <small>Paste the original web address, if from a website.</small>
+          <input type="url" name="source_url" value="${esc(r.source_url||'')}">
+        </label>
+        <label class="edit-wide">Source Image
+          <small>Upload the original recipe card or photo.${r.source_image ? ` Current: <a href="/source-images/${esc(r.source_image)}" target="_blank">${esc(r.source_image)}</a>` : ''}</small>
+          <input type="file" name="source_image" accept="image/*,.pdf">
+        </label>
       </div>
     </form>`;
 }
@@ -312,12 +326,28 @@ async function saveEdits(evt) {
     instructions: form.instructions.value.trim(),
     variations:   parseVariations(form.variations.value),
     notes:        form.notes.value.trim()||null,
+    source_url:   form.source_url.value.trim()||null,
+    source_image: currentRecipe.source_image||null,
   };
   const res = await fetch(`/api/recipes/${id}`, {
     method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data),
   });
-  if (res.ok) { currentRecipe={...currentRecipe,...data}; render(currentRecipe); }
-  else alert('Save failed.');
+  if (!res.ok) { alert('Save failed.'); return; }
+
+  // Upload source image if a file was chosen
+  const file = form.source_image.files[0];
+  if (file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    const imgRes = await fetch(`/api/recipes/${id}/source-image`, {method:'POST', body:fd});
+    if (imgRes.ok) {
+      const imgData = await imgRes.json();
+      data.source_image = imgData.filename;
+    }
+  }
+
+  currentRecipe = {...currentRecipe, ...data};
+  render(currentRecipe);
 }
 
 async function deleteRecipe() {

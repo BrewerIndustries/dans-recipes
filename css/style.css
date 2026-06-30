@@ -1081,6 +1081,19 @@ body {
 }
 .date-checkbox-label input[type="checkbox"] { cursor: pointer; }
 
+/* ── Tag bar: expand control ─────────────────────────────────── */
+.tag-chip-more {
+  background: transparent;
+  color: var(--color-muted);
+  border-color: transparent;
+  font-style: italic;
+}
+.tag-chip-more:hover {
+  background: transparent;
+  border-color: var(--color-border);
+  color: var(--color-accent);
+}
+
 /* ── Source-link as button ───────────────────────────────────── */
 button.source-link {
   background: none;

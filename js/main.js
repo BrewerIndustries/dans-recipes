@@ -50,7 +50,7 @@ function buildCategoryTabs(categories) {
 }
 
 function setCategory(cat) {
-  activeCategory = cat; activeTag = null; buildTagBar();
+  activeCategory = cat; activeTag = null; tagBarExpanded = false; buildTagBar();
   const subTabs = document.getElementById('sourdough-subtabs');
   const logSection = document.getElementById('log-section');
   if (cat === 'Sourdough') {
@@ -210,16 +210,40 @@ async function deleteLog(id) {
 }
 
 // ── Tag bar ───────────────────────────────────────────────
+let tagBarExpanded = false;
+const TAG_LIMIT = 20;
+
 function buildTagBar() {
   tagBar.innerHTML = '';
   const source = activeCategory==='All' ? allRecipes : allRecipes.filter(r=>r.category===activeCategory);
-  [...new Set(source.flatMap(r=>r.tags||[]))].sort().forEach(tag => {
+
+  // Count frequency of each tag
+  const freq = {};
+  source.forEach(r => (r.tags||[]).forEach(t => { freq[t] = (freq[t]||0) + 1; }));
+  const sorted = Object.keys(freq).sort((a, b) => freq[b] - freq[a] || a.localeCompare(b));
+
+  const visible = tagBarExpanded ? sorted : sorted.slice(0, TAG_LIMIT);
+  const hidden  = sorted.length - TAG_LIMIT;
+
+  // Always include the active tag even if it falls outside the visible slice
+  const toRender = activeTag && !visible.includes(activeTag)
+    ? [activeTag, ...visible] : visible;
+
+  toRender.forEach(tag => {
     const chip = document.createElement('button');
-    chip.className = 'tag-chip'+(tag===activeTag?' active':'');
+    chip.className = 'tag-chip' + (tag === activeTag ? ' active' : '');
     chip.textContent = tag;
     chip.addEventListener('click', () => { activeTag = activeTag===tag?null:tag; buildTagBar(); renderGrid(); });
     tagBar.appendChild(chip);
   });
+
+  if (sorted.length > TAG_LIMIT) {
+    const more = document.createElement('button');
+    more.className = 'tag-chip tag-chip-more';
+    more.textContent = tagBarExpanded ? 'Show less' : `+${hidden} more`;
+    more.addEventListener('click', () => { tagBarExpanded = !tagBarExpanded; buildTagBar(); });
+    tagBar.appendChild(more);
+  }
 }
 
 // ── Render grid ───────────────────────────────────────────

@@ -1,10 +1,13 @@
 {
   "id": "dans-recipes",
   "name": "Dan's Recipes",
+  "description": "Personal recipe collection with inline editing, tag/category browsing, and a sourdough bake log. Recipes can be submitted via email to Jarvis for review and one-click approval.",
   "category": "standalone",
   "status": { "prod": "live", "dev": "live" },
   "deploy": {
     "prod": { "url": "http://100.102.159.57:5050/" },
     "dev":  { "url": "http://100.102.159.57:5051/" }
-  }
+  },
+  "tech": ["FastAPI", "SQLite", "Python"],
+  "repo": "https://github.com/BrewerIndustries/dans-recipes"
 }

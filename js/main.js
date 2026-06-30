@@ -1,5 +1,10 @@
 /* ── Dan's Recipes — Browse/Search ───────────────────────── */
 
+const ALL_CATEGORIES = [
+  'Sauces/Dips','Seasonings','Kombucha','Pickles','Dehydrator',
+  'Drinks','Appetizers','Sides','Mains','Baking/Desserts','Sourdough',
+];
+
 let allRecipes = [];
 let activeCategory = 'All';
 let activeTag = null;
@@ -16,13 +21,9 @@ zoomSlider.addEventListener('input', () => {
 });
 
 async function init() {
-  const [recipesRes, catsRes] = await Promise.all([
-    fetch('/api/recipes'),
-    fetch('/api/categories'),
-  ]);
+  const recipesRes = await fetch('/api/recipes');
   allRecipes = await recipesRes.json();
-  const categories = (await catsRes.json()).map(c => c.category);
-  buildCategoryTabs(categories);
+  buildCategoryTabs(ALL_CATEGORIES);
   buildTagBar();
   renderGrid();
   fuse = new Fuse(allRecipes, { keys: ['title','tags','category'], threshold: 0.35, includeScore: true });

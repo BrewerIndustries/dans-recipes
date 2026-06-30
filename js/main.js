@@ -104,7 +104,7 @@ function renderLog() {
     ${logEntries.length === 0 ? '<p class="log-empty">No bakes logged yet.</p>' : `
       <div class="log-table-wrap"><table class="log-table">
         <thead><tr>
-          <th>Started</th><th>Finished</th><th>Flour (g)</th><th>Water (g)</th>
+          <th>Name</th><th>Started</th><th>Finished</th><th>Flour (g)</th><th>Water (g)</th>
           <th>Hydration</th><th>Starter (g)</th><th>Rating</th><th>Notes</th><th>Recipe</th><th></th>
         </tr></thead>
         <tbody id="log-tbody"></tbody>
@@ -115,7 +115,7 @@ function renderLog() {
   logEntries.forEach(e => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${e.date_started||'—'}</td><td>${e.date_finished||'—'}</td>
+      <td class="log-name">${e.name||'—'}</td><td>${e.date_started||'—'}</td><td>${e.date_finished||'—'}</td>
       <td>${e.flour_used!=null?e.flour_used:'—'}</td><td>${e.water_used!=null?e.water_used:'—'}</td>
       <td>${e.hydration!=null?e.hydration+'%':'—'}</td><td>${e.starter_used!=null?e.starter_used:'—'}</td>
       <td class="log-stars">${stars(e.ranking)}</td>
@@ -135,6 +135,7 @@ function logFormHtml(entry) {
     .map(r=>`<option value="${r.id}" ${e.recipe_id===r.id?'selected':''}>${r.title}</option>`).join('');
   return `<form class="log-form" onsubmit="saveLogEntry(event,${e.id||'null'})">
     <div class="log-form-grid">
+      <label class="log-form-wide">Bake Name<input type="text" name="name" placeholder="e.g. Country loaf, Focaccia…" value="${e.name||''}"></label>
       <label>Date Started<input type="date" name="date_started" value="${e.date_started||''}"></label>
       <label>Date Finished<input type="date" name="date_finished" value="${e.date_finished||''}"></label>
       <label>Flour (g)<input type="number" name="flour_used" step="any" value="${e.flour_used||''}"></label>
@@ -187,6 +188,7 @@ async function saveLogEntry(evt, id) {
   evt.preventDefault();
   const form = evt.target;
   const data = {
+    name:          form.name.value.trim()||null,
     date_started:  form.date_started.value||null,
     date_finished: form.date_finished.value||null,
     flour_used:    parseFloat(form.flour_used.value)||null,

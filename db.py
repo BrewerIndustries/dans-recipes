@@ -40,6 +40,7 @@ def init_db():
             );
             CREATE TABLE IF NOT EXISTS sourdough_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
                 date_started TEXT,
                 date_finished TEXT,
                 flour_used REAL,
@@ -72,6 +73,12 @@ def init_db():
                 conn.commit()
             except Exception:
                 pass  # column already exists
+
+        try:
+            conn.execute("ALTER TABLE sourdough_log ADD COLUMN name TEXT")
+            conn.commit()
+        except Exception:
+            pass  # column already exists
 
         # Migration: make made_on nullable (original schema had NOT NULL)
         pragma = conn.execute("PRAGMA table_info(recipe_made_log)").fetchall()
@@ -212,9 +219,10 @@ def get_log_entry(id):
 def create_log_entry(data):
     with get_conn() as conn:
         cur = conn.execute("""
-            INSERT INTO sourdough_log (date_started, date_finished, flour_used, water_used, starter_used, ranking, notes, recipe_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO sourdough_log (name, date_started, date_finished, flour_used, water_used, starter_used, ranking, notes, recipe_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, [
+            data.get('name'),
             data.get('date_started'), data.get('date_finished'),
             data.get('flour_used'), data.get('water_used'), data.get('starter_used'),
             data.get('ranking', 0), data.get('notes'), data.get('recipe_id'),
@@ -226,10 +234,11 @@ def update_log_entry(id, data):
     with get_conn() as conn:
         conn.execute("""
             UPDATE sourdough_log SET
-                date_started=?, date_finished=?, flour_used=?, water_used=?,
+                name=?, date_started=?, date_finished=?, flour_used=?, water_used=?,
                 starter_used=?, ranking=?, notes=?, recipe_id=?
             WHERE id=?
         """, [
+            data.get('name'),
             data.get('date_started'), data.get('date_finished'),
             data.get('flour_used'), data.get('water_used'), data.get('starter_used'),
             data.get('ranking', 0), data.get('notes'), data.get('recipe_id'),

@@ -118,7 +118,11 @@ function renderMadeFormHtml() {
   const today = new Date().toISOString().split('T')[0];
   return `
     <form class="inline-log-form" id="made-form">
-      <input type="date" name="made_on" value="${today}" placeholder="Date (optional)">
+      <label class="date-checkbox-label">
+        <input type="checkbox" id="made-date-check" checked>
+        <span>Date</span>
+      </label>
+      <input type="date" name="made_on" id="made-date-input" value="${today}">
       <input type="text" name="notes" placeholder="Notes (optional)" style="flex:1">
       <button type="submit" class="save-btn">Save</button>
       <button type="button" class="cancel-btn" id="cancel-made-btn">Cancel</button>
@@ -131,17 +135,24 @@ function bindMadeLogEvents() {
     document.getElementById('cancel-made-btn').addEventListener('click', () => {
       document.getElementById('made-form-container').innerHTML = '';
     });
+    const dateCheck = document.getElementById('made-date-check');
+    const dateInput = document.getElementById('made-date-input');
+    dateCheck.addEventListener('change', () => {
+      dateInput.disabled = !dateCheck.checked;
+      dateInput.style.opacity = dateCheck.checked ? '1' : '0.35';
+    });
     document.getElementById('made-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
+      const made_on = dateCheck.checked ? form.made_on.value || null : null;
       const res = await fetch(`/api/recipes/${id}/made`, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({made_on: form.made_on.value, notes: form.notes.value.trim()||null}),
+        body: JSON.stringify({made_on, notes: form.notes.value.trim()||null}),
       });
       if (res.ok) {
         const data = await res.json();
-        madeLog.unshift({id: data.id, made_on: form.made_on.value, notes: form.notes.value.trim()||null});
+        madeLog.unshift({id: data.id, made_on, notes: form.notes.value.trim()||null});
         document.getElementById('made-log-section').innerHTML = renderMadeLogHtml();
         bindMadeLogEvents();
         refreshMadeStatus();

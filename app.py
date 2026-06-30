@@ -33,13 +33,16 @@ app = FastAPI(title="Dan's Recipes")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 SOURCE_IMAGES_DIR = Path(config['db_path']).parent / "source-images"
+RECIPE_IMAGES_DIR = Path(config['db_path']).parent / "recipe-images"
 SOURCE_IMAGES_DIR.mkdir(exist_ok=True)
+RECIPE_IMAGES_DIR.mkdir(exist_ok=True)
 
 # Mount static directories
 app.mount("/css", StaticFiles(directory="css"), name="css")
 app.mount("/js", StaticFiles(directory="js"), name="js")
 app.mount("/data", StaticFiles(directory="data"), name="data")
 app.mount("/source-images", StaticFiles(directory=str(SOURCE_IMAGES_DIR)), name="source-images")
+app.mount("/recipe-images", StaticFiles(directory=str(RECIPE_IMAGES_DIR)), name="recipe-images")
 
 
 # ── HTML routes ────────────────────────────────────────────────
@@ -116,7 +119,7 @@ async def delete_log(id: int, request: Request):
     db.delete_log_entry(id)
     return {"ok": True}
 
-# ── Source image upload ───────────────────────────────────────
+# ── Image uploads ─────────────────────────────────────────────
 @app.post("/api/recipes/{id}/source-image")
 async def upload_source_image(id: str, file: UploadFile = File(...)):
     if not db.get_recipe(id):
@@ -128,6 +131,18 @@ async def upload_source_image(id: str, file: UploadFile = File(...)):
     filename = f"{id}{suffix}"
     db.set_source_image(id, filename)
     return {"filename": filename}
+
+@app.post("/api/recipes/{id}/image")
+async def upload_recipe_image(id: str, file: UploadFile = File(...)):
+    if not db.get_recipe(id):
+        raise HTTPException(status_code=404, detail="Not found")
+    suffix = Path(file.filename).suffix.lower() or ".jpg"
+    dest = RECIPE_IMAGES_DIR / f"{id}{suffix}"
+    with dest.open("wb") as f:
+        shutil.copyfileobj(file.file, f)
+    url = f"/recipe-images/{id}{suffix}"
+    db.update_recipe(id, {**db.get_recipe(id), 'image': url})
+    return {"url": url}
 
 # ── Made log endpoints ────────────────────────────────────────
 @app.get("/api/recipes/{id}/made")

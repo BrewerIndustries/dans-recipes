@@ -259,7 +259,7 @@ function enterEditMode() {
         <div class="edit-form-btns">
           <button type="submit" class="save-btn">Save</button>
           <button type="button" class="cancel-btn" onclick="cancelEdit()">Cancel</button>
-          <button type="button" class="delete-btn" onclick="deleteRecipe()">Delete</button>
+          <button type="button" class="delete-btn" onclick="showDeleteConfirm()">Delete</button>
         </div>
       </div>
       <div class="edit-grid">
@@ -269,7 +269,14 @@ function enterEditMode() {
         </label>
         <label>Yield<input type="text" name="yield" value="${esc(r.yield||'')}"></label>
         <label class="edit-wide">Tags (comma separated)<input type="text" name="tags" value="${esc((r.tags||[]).join(', '))}"></label>
-        <label class="edit-wide">Image URL<input type="url" name="image" value="${esc(r.image||'')}"></label>
+        <label class="edit-wide">Recipe Photo
+          <small>Paste a URL or upload a file — upload overwrites the URL.</small>
+          <div class="image-input-row">
+            <input type="url" name="image" placeholder="https://…" value="${esc(r.image||'')}">
+            <label class="upload-btn">Upload <input type="file" name="image_file" accept="image/*" style="display:none"></label>
+          </div>
+          ${r.image ? `<img class="edit-image-preview" src="${esc(r.image)}" alt="current photo">` : ''}
+        </label>
         <label class="edit-wide">Ingredients
           <small>One per line. Start a section with [Section Name].</small>
           <textarea name="sections" rows="10">${esc(sectionsValue)}</textarea>
@@ -329,16 +336,29 @@ async function saveEdits(evt) {
     source_url:   form.source_url.value.trim()||null,
     source_image: currentRecipe.source_image||null,
   };
+
+  // Upload recipe photo first if a file was chosen — overwrites URL field
+  const imageFile = form.image_file.files[0];
+  if (imageFile) {
+    const fd = new FormData();
+    fd.append('file', imageFile);
+    const imgRes = await fetch(`/api/recipes/${id}/image`, {method:'POST', body:fd});
+    if (imgRes.ok) {
+      const imgData = await imgRes.json();
+      data.image = imgData.url;
+    }
+  }
+
   const res = await fetch(`/api/recipes/${id}`, {
     method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data),
   });
   if (!res.ok) { alert('Save failed.'); return; }
 
   // Upload source image if a file was chosen
-  const file = form.source_image.files[0];
-  if (file) {
+  const sourceFile = form.source_image.files[0];
+  if (sourceFile) {
     const fd = new FormData();
-    fd.append('file', file);
+    fd.append('file', sourceFile);
     const imgRes = await fetch(`/api/recipes/${id}/source-image`, {method:'POST', body:fd});
     if (imgRes.ok) {
       const imgData = await imgRes.json();
@@ -350,8 +370,31 @@ async function saveEdits(evt) {
   render(currentRecipe);
 }
 
-async function deleteRecipe() {
-  if (!confirm(`Delete "${currentRecipe.title}"? This cannot be undone.`)) return;
+function showDeleteConfirm() {
+  // Inject confirm panel below the form header
+  const existing = document.getElementById('delete-confirm-panel');
+  if (existing) { existing.remove(); return; }
+  const panel = document.createElement('div');
+  panel.id = 'delete-confirm-panel';
+  panel.className = 'delete-confirm-panel';
+  panel.innerHTML = `
+    <p>Type <strong>delete</strong> to permanently remove this recipe.</p>
+    <div class="delete-confirm-row">
+      <input type="text" id="delete-confirm-input" placeholder="delete" autocomplete="off">
+      <button class="delete-btn" id="delete-confirm-btn" disabled>Delete forever</button>
+      <button class="cancel-btn" onclick="document.getElementById('delete-confirm-panel').remove()">Cancel</button>
+    </div>`;
+  document.querySelector('.edit-form-header').after(panel);
+  const input = document.getElementById('delete-confirm-input');
+  const btn   = document.getElementById('delete-confirm-btn');
+  input.focus();
+  input.addEventListener('input', () => {
+    btn.disabled = input.value.trim().toLowerCase() !== 'delete';
+  });
+  btn.addEventListener('click', doDeleteRecipe);
+}
+
+async function doDeleteRecipe() {
   const res = await fetch(`/api/recipes/${id}`, {method:'DELETE'});
   if (res.ok) window.location.href='/';
   else alert('Delete failed.');

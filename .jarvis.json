@@ -5,7 +5,7 @@
   "category": "standalone",
   "status": { "prod": "live", "dev": "live" },
   "deploy": {
-    "prod": { "url": "https://dans-recipes.dabrewer.dev/" },
-    "dev":  { "url": "https://dans-recipes.dabrewer.dev/dev/" }
+    "prod": { "url": "http://100.102.159.57:5050/" },
+    "dev":  { "url": "http://100.102.159.57:5051/" }
   }
 }

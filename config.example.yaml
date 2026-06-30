@@ -1,0 +1,4 @@
+admin_password: "changeme"
+api_key: "change-this-jarvis-secret"
+db_path: "data/dans-recipes.db"
+port: 5050

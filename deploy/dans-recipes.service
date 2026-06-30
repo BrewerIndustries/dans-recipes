@@ -1,0 +1,17 @@
+[Unit]
+Description=Dan's Recipes — Prod
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dan
+WorkingDirectory=/home/dan/dans-recipes
+ExecStart=/home/dan/dans-recipes/.venv/bin/python3 app.py --port 5050
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/home/dan/dans-recipes/data/app.log
+StandardError=append:/home/dan/dans-recipes/data/app.log
+
+[Install]
+WantedBy=multi-user.target

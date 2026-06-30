@@ -290,7 +290,7 @@ function enterEditMode() {
         <label class="edit-wide">Recipe Photo
           <small>Paste a URL or upload a file — upload overwrites the URL.</small>
           <div class="image-input-row">
-            <input type="url" name="image" placeholder="https://…" value="${esc(r.image||'')}">
+            <input type="text" name="image" placeholder="https://…" value="${esc(r.image||'')}">
             <label class="upload-btn">Upload <input type="file" name="image_file" accept="image/*" style="display:none"></label>
           </div>
           ${r.image ? `<img class="edit-image-preview" src="${esc(r.image)}" alt="current photo">` : ''}

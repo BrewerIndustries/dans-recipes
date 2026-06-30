@@ -21,7 +21,7 @@ async function init() {
     fetch('/api/categories'),
   ]);
   allRecipes = await recipesRes.json();
-  const categories = (await catsRes.json()).map(c => c.name);
+  const categories = (await catsRes.json()).map(c => c.category);
   buildCategoryTabs(categories);
   buildTagBar();
   renderGrid();

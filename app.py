@@ -112,6 +112,48 @@ async def delete_log(id: int, request: Request):
     db.delete_log_entry(id)
     return {"ok": True}
 
+# ── Made log endpoints ────────────────────────────────────────
+@app.get("/api/recipes/{id}/made")
+async def get_made(id: str):
+    return db.get_made_log(id)
+
+@app.post("/api/recipes/{id}/made")
+async def add_made(id: str, request: Request):
+    if not db.get_recipe(id):
+        raise HTTPException(status_code=404, detail="Not found")
+    data = await request.json()
+    made_on = data.get("made_on")
+    if not made_on:
+        raise HTTPException(status_code=400, detail="made_on required")
+    entry_id = db.add_made_entry(id, made_on, data.get("notes"))
+    return {"id": entry_id}
+
+@app.delete("/api/recipes/{id}/made/{entry_id}")
+async def delete_made(id: str, entry_id: int):
+    db.delete_made_entry(entry_id)
+    return {"ok": True}
+
+# ── Comment endpoints ─────────────────────────────────────────
+@app.get("/api/recipes/{id}/comments")
+async def get_comments(id: str):
+    return db.get_comments(id)
+
+@app.post("/api/recipes/{id}/comments")
+async def add_comment(id: str, request: Request):
+    if not db.get_recipe(id):
+        raise HTTPException(status_code=404, detail="Not found")
+    data = await request.json()
+    comment = (data.get("comment") or "").strip()
+    if not comment:
+        raise HTTPException(status_code=400, detail="comment required")
+    comment_id = db.add_comment(id, comment)
+    return {"id": comment_id}
+
+@app.delete("/api/recipes/{id}/comments/{comment_id}")
+async def delete_comment(id: str, comment_id: int):
+    db.delete_comment(comment_id)
+    return {"ok": True}
+
 # ── Category/tag endpoints ─────────────────────────────────────
 @app.get("/api/categories")
 async def categories():

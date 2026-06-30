@@ -879,3 +879,117 @@ body {
   .instructions-text { font-size: 9.5pt; }
   .section-label { font-size: 7pt; }
 }
+
+/* ── Made-count badge on cards ──────────────────────────────── */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.card-never-made {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.card-made-count {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Made status badge on detail page ───────────────────────── */
+.made-status {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 2px 10px;
+  margin-left: 0.4rem;
+}
+.made-status.never {
+  background: var(--color-border);
+  color: var(--color-muted);
+}
+.made-status.made {
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  color: var(--color-accent);
+}
+
+/* ── Made log & comments sections ───────────────────────────── */
+.recipe-log-section {
+  margin-top: 1.5rem;
+}
+.log-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+.add-log-btn {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 3px 12px;
+  border: 1px solid var(--color-accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+.add-log-btn:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.log-entries { display: flex; flex-direction: column; gap: 0.4rem; }
+.log-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.45rem 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+.log-entry-date {
+  font-weight: 600;
+  color: var(--color-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.log-entry-notes { flex: 1; color: var(--color-text); }
+.log-entry-del {
+  background: none; border: none; cursor: pointer;
+  color: var(--color-muted); font-size: 0.75rem; padding: 0 2px;
+  flex-shrink: 0;
+}
+.log-entry-del:hover { color: #e74c3c; }
+.log-empty { font-size: 0.85rem; color: var(--color-muted); margin: 0.25rem 0; }
+.inline-log-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+}
+.inline-log-form input[type="date"],
+.inline-log-form input[type="text"] {
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-page);
+  color: var(--color-text);
+}

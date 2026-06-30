@@ -48,6 +48,19 @@ def init_db():
                 recipe_id TEXT REFERENCES recipes(id),
                 created_at TEXT DEFAULT (datetime('now'))
             );
+            CREATE TABLE IF NOT EXISTS recipe_made_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+                made_on TEXT NOT NULL,
+                notes TEXT,
+                created_at TEXT DEFAULT (datetime('now'))
+            );
+            CREATE TABLE IF NOT EXISTS recipe_comments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+                comment TEXT NOT NULL,
+                created_at TEXT DEFAULT (datetime('now'))
+            );
         """)
         conn.commit()
 
@@ -63,16 +76,24 @@ def _deserialize(row):
 
 def get_all_recipes(category=None, tag=None, search=None):
     with get_conn() as conn:
-        sql = "SELECT * FROM recipes WHERE 1=1"
+        sql = """
+            SELECT r.*,
+                   COUNT(m.id) as made_count,
+                   MAX(m.made_on) as last_made
+            FROM recipes r
+            LEFT JOIN recipe_made_log m ON m.recipe_id = r.id
+            WHERE 1=1
+        """
         params = []
         if category:
-            sql += " AND category = ?"
+            sql += " AND r.category = ?"
             params.append(category)
         if search:
-            sql += " AND (title LIKE ? OR tags LIKE ? OR category LIKE ?)"
+            sql += " AND (r.title LIKE ? OR r.tags LIKE ? OR r.category LIKE ?)"
             s = f"%{search}%"
             params.extend([s, s, s])
-        rows = conn.execute(sql + " ORDER BY title", params).fetchall()
+        sql += " GROUP BY r.id ORDER BY r.title"
+        rows = conn.execute(sql, params).fetchall()
     results = [_deserialize(r) for r in rows]
     if tag:
         results = [r for r in results if tag in r.get('tags', [])]
@@ -184,4 +205,52 @@ def update_log_entry(id, data):
 def delete_log_entry(id):
     with get_conn() as conn:
         conn.execute("DELETE FROM sourdough_log WHERE id=?", [id])
+        conn.commit()
+
+# ── Recipe made log ────────────────────────────────────────────
+
+def get_made_log(recipe_id):
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT * FROM recipe_made_log WHERE recipe_id=? ORDER BY made_on DESC, id DESC",
+            [recipe_id]
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+def add_made_entry(recipe_id, made_on, notes=None):
+    with get_conn() as conn:
+        cur = conn.execute(
+            "INSERT INTO recipe_made_log (recipe_id, made_on, notes) VALUES (?, ?, ?)",
+            [recipe_id, made_on, notes]
+        )
+        conn.commit()
+        return cur.lastrowid
+
+def delete_made_entry(entry_id):
+    with get_conn() as conn:
+        conn.execute("DELETE FROM recipe_made_log WHERE id=?", [entry_id])
+        conn.commit()
+
+# ── Recipe comments ────────────────────────────────────────────
+
+def get_comments(recipe_id):
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT * FROM recipe_comments WHERE recipe_id=? ORDER BY created_at DESC",
+            [recipe_id]
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+def add_comment(recipe_id, comment):
+    with get_conn() as conn:
+        cur = conn.execute(
+            "INSERT INTO recipe_comments (recipe_id, comment) VALUES (?, ?)",
+            [recipe_id, comment]
+        )
+        conn.commit()
+        return cur.lastrowid
+
+def delete_comment(comment_id):
+    with get_conn() as conn:
+        conn.execute("DELETE FROM recipe_comments WHERE id=?", [comment_id])
         conn.commit()

@@ -1,7 +1,7 @@
-import argparse, os, sys
+import argparse, os
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, Depends, Request
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -37,14 +37,6 @@ app.mount("/css", StaticFiles(directory="css"), name="css")
 app.mount("/js", StaticFiles(directory="js"), name="js")
 app.mount("/data", StaticFiles(directory="data"), name="data")
 
-# ── Auth ───────────────────────────────────────────────────────
-def check_auth(request: Request):
-    auth = request.headers.get('Authorization', '')
-    api_key = request.headers.get('X-API-Key', '')
-    token = auth.replace('Bearer ', '').strip() if auth.startswith('Bearer ') else ''
-    if (token and token == config['secret_key']) or (api_key and api_key == config['api_key']):
-        return True
-    raise HTTPException(status_code=401, detail="Unauthorized")
 
 # ── HTML routes ────────────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse)
@@ -59,19 +51,6 @@ async def recipe_page(id: str):
 async def sourdough_page():
     return FileResponse("index.html")
 
-# ── Auth endpoints ─────────────────────────────────────────────
-@app.post("/api/login")
-async def login(request: Request):
-    body = await request.json()
-    password = body.get('password', '')
-    if password == config['admin_password']:
-        return {"token": config['secret_key']}
-    raise HTTPException(status_code=401, detail="Invalid password")
-
-@app.get("/api/me")
-async def me(auth=Depends(check_auth)):
-    return {"ok": True}
-
 # ── Recipe endpoints ───────────────────────────────────────────
 @app.get("/api/recipes")
 async def list_recipes(category: str = None, tag: str = None, q: str = None):
@@ -85,13 +64,13 @@ async def get_recipe(id: str):
     return r
 
 @app.post("/api/recipes")
-async def create_recipe(request: Request, auth=Depends(check_auth)):
+async def create_recipe(request: Request):
     data = await request.json()
     id = db.create_recipe(data)
     return {"id": id}
 
 @app.put("/api/recipes/{id}")
-async def update_recipe(id: str, request: Request, auth=Depends(check_auth)):
+async def update_recipe(id: str, request: Request):
     data = await request.json()
     if not db.get_recipe(id):
         raise HTTPException(status_code=404, detail="Not found")
@@ -99,7 +78,7 @@ async def update_recipe(id: str, request: Request, auth=Depends(check_auth)):
     return {"ok": True}
 
 @app.delete("/api/recipes/{id}")
-async def delete_recipe(id: str, auth=Depends(check_auth)):
+async def delete_recipe(id: str, request: Request):
     if not db.get_recipe(id):
         raise HTTPException(status_code=404, detail="Not found")
     db.delete_recipe(id)
@@ -117,19 +96,19 @@ async def get_log():
     return entries
 
 @app.post("/api/sourdough/log")
-async def create_log(request: Request, auth=Depends(check_auth)):
+async def create_log(request: Request):
     data = await request.json()
     id = db.create_log_entry(data)
     return {"id": id}
 
 @app.put("/api/sourdough/log/{id}")
-async def update_log(id: int, request: Request, auth=Depends(check_auth)):
+async def update_log(id: int, request: Request):
     data = await request.json()
     db.update_log_entry(id, data)
     return {"ok": True}
 
 @app.delete("/api/sourdough/log/{id}")
-async def delete_log(id: int, auth=Depends(check_auth)):
+async def delete_log(id: int, request: Request):
     db.delete_log_entry(id)
     return {"ok": True}
 

@@ -1,173 +1,151 @@
-"""Dan's Recipes — FastAPI webapp."""
-
-import argparse
-import secrets
-import uuid
+import argparse, os, sys
 from pathlib import Path
-
+from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import yaml
-from fastapi import FastAPI, HTTPException, Request, Depends
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
 
 import db
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# ── Config ────────────────────────────────────────────────────
+def load_config():
+    cfg = {}
+    cfg_path = Path('config.yaml')
+    if cfg_path.exists():
+        with open(cfg_path) as f:
+            cfg = yaml.safe_load(f) or {}
+    return {
+        'admin_password': cfg.get('admin_password') or os.environ.get('ADMIN_PASSWORD', 'changeme'),
+        'api_key': cfg.get('api_key') or os.environ.get('API_KEY', ''),
+        'secret_key': cfg.get('secret_key') or os.environ.get('SECRET_KEY', 'dev-secret'),
+        'db_path': cfg.get('db_path') or os.environ.get('DB_PATH', 'data/dans-recipes.db'),
+        'port': cfg.get('port') or int(os.environ.get('PORT', 5050)),
+    }
 
-def _load_config():
-    path = Path("config.yaml")
-    if path.exists():
-        return yaml.safe_load(path.read_text()) or {}
-    return {}
-
-cfg = _load_config()
-ADMIN_PASSWORD = cfg.get("admin_password", "changeme")
-API_KEY        = cfg.get("api_key", "")
-DB_PATH        = cfg.get("db_path", "data/dans-recipes.db")
-
-# In-memory valid session tokens
-_valid_tokens: set[str] = set()
-
-db.DB_PATH = Path(DB_PATH)
+config = load_config()
+db.set_db_path(config['db_path'])
 db.init_db()
 
-# ── App ───────────────────────────────────────────────────────────────────────
-
 app = FastAPI(title="Dan's Recipes")
-app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/js",     StaticFiles(directory="js"),     name="js")
-app.mount("/css",    StaticFiles(directory="css"),     name="css")
 
-# ── Auth ──────────────────────────────────────────────────────────────────────
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-def _is_authed(request: Request) -> bool:
-    auth = request.headers.get("Authorization", "")
-    if auth.startswith("Bearer "):
-        token = auth[7:]
-        if token in _valid_tokens:
-            return True
-    api_key = request.headers.get("X-API-Key", "")
-    if API_KEY and api_key == API_KEY:
+# Mount static directories
+app.mount("/css", StaticFiles(directory="css"), name="css")
+app.mount("/js", StaticFiles(directory="js"), name="js")
+app.mount("/data", StaticFiles(directory="data"), name="data")
+
+# ── Auth ───────────────────────────────────────────────────────
+def check_auth(request: Request):
+    auth = request.headers.get('Authorization', '')
+    api_key = request.headers.get('X-API-Key', '')
+    token = auth.replace('Bearer ', '').strip() if auth.startswith('Bearer ') else ''
+    if (token and token == config['secret_key']) or (api_key and api_key == config['api_key']):
         return True
-    return False
+    raise HTTPException(status_code=401, detail="Unauthorized")
 
-def require_auth(request: Request):
-    if not _is_authed(request):
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-# ── Static pages ──────────────────────────────────────────────────────────────
-
-@app.get("/")
-def index():
+# ── HTML routes ────────────────────────────────────────────────
+@app.get("/", response_class=HTMLResponse)
+async def index():
     return FileResponse("index.html")
 
-@app.get("/recipe/{recipe_id}")
-def recipe_page(recipe_id: str):
+@app.get("/recipe/{id}", response_class=HTMLResponse)
+async def recipe_page(id: str):
     return FileResponse("recipe.html")
 
-# ── Auth endpoints ────────────────────────────────────────────────────────────
+@app.get("/sourdough", response_class=HTMLResponse)
+async def sourdough_page():
+    return FileResponse("index.html")
 
+# ── Auth endpoints ─────────────────────────────────────────────
 @app.post("/api/login")
 async def login(request: Request):
     body = await request.json()
-    if body.get("password") == ADMIN_PASSWORD:
-        token = secrets.token_hex(32)
-        _valid_tokens.add(token)
-        return {"token": token}
-    raise HTTPException(status_code=401, detail="Wrong password")
-
-@app.post("/api/logout")
-async def logout(request: Request):
-    auth = request.headers.get("Authorization", "")
-    if auth.startswith("Bearer "):
-        _valid_tokens.discard(auth[7:])
-    return {"ok": True}
+    password = body.get('password', '')
+    if password == config['admin_password']:
+        return {"token": config['secret_key']}
+    raise HTTPException(status_code=401, detail="Invalid password")
 
 @app.get("/api/me")
-async def me(request: Request):
-    if _is_authed(request):
-        return {"ok": True}
-    raise HTTPException(status_code=401, detail="Not logged in")
+async def me(auth=Depends(check_auth)):
+    return {"ok": True}
 
-# ── Recipe endpoints ──────────────────────────────────────────────────────────
-
+# ── Recipe endpoints ───────────────────────────────────────────
 @app.get("/api/recipes")
-def list_recipes(category: str = None, tag: str = None, q: str = None):
+async def list_recipes(category: str = None, tag: str = None, q: str = None):
     return db.get_all_recipes(category=category, tag=tag, search=q)
 
-@app.get("/api/recipes/{recipe_id}")
-def get_recipe(recipe_id: str):
-    r = db.get_recipe(recipe_id)
+@app.get("/api/recipes/{id}")
+async def get_recipe(id: str):
+    r = db.get_recipe(id)
     if not r:
-        raise HTTPException(status_code=404, detail="Recipe not found")
+        raise HTTPException(status_code=404, detail="Not found")
     return r
 
 @app.post("/api/recipes")
-async def create_recipe(request: Request, _=Depends(require_auth)):
+async def create_recipe(request: Request, auth=Depends(check_auth)):
     data = await request.json()
-    if not data.get("id"):
-        data["id"] = str(uuid.uuid4())[:8]
-    if not data.get("title") or not data.get("category"):
-        raise HTTPException(status_code=400, detail="title and category required")
-    recipe_id = db.create_recipe(data)
-    return {"id": recipe_id}
+    id = db.create_recipe(data)
+    return {"id": id}
 
-@app.put("/api/recipes/{recipe_id}")
-async def update_recipe(recipe_id: str, request: Request, _=Depends(require_auth)):
+@app.put("/api/recipes/{id}")
+async def update_recipe(id: str, request: Request, auth=Depends(check_auth)):
     data = await request.json()
-    if not db.get_recipe(recipe_id):
-        raise HTTPException(status_code=404, detail="Recipe not found")
-    db.update_recipe(recipe_id, data)
+    if not db.get_recipe(id):
+        raise HTTPException(status_code=404, detail="Not found")
+    db.update_recipe(id, data)
     return {"ok": True}
 
-@app.delete("/api/recipes/{recipe_id}")
-def delete_recipe(recipe_id: str, _=Depends(require_auth)):
-    if not db.get_recipe(recipe_id):
-        raise HTTPException(status_code=404, detail="Recipe not found")
-    db.delete_recipe(recipe_id)
+@app.delete("/api/recipes/{id}")
+async def delete_recipe(id: str, auth=Depends(check_auth)):
+    if not db.get_recipe(id):
+        raise HTTPException(status_code=404, detail="Not found")
+    db.delete_recipe(id)
     return {"ok": True}
 
+# ── Sourdough log endpoints ────────────────────────────────────
+@app.get("/api/sourdough/log")
+async def get_log():
+    entries = db.get_log_entries()
+    for e in entries:
+        if e.get('flour_used') and e.get('water_used') and e['flour_used'] > 0:
+            e['hydration'] = round(e['water_used'] / e['flour_used'] * 100, 1)
+        else:
+            e['hydration'] = None
+    return entries
+
+@app.post("/api/sourdough/log")
+async def create_log(request: Request, auth=Depends(check_auth)):
+    data = await request.json()
+    id = db.create_log_entry(data)
+    return {"id": id}
+
+@app.put("/api/sourdough/log/{id}")
+async def update_log(id: int, request: Request, auth=Depends(check_auth)):
+    data = await request.json()
+    db.update_log_entry(id, data)
+    return {"ok": True}
+
+@app.delete("/api/sourdough/log/{id}")
+async def delete_log(id: int, auth=Depends(check_auth)):
+    db.delete_log_entry(id)
+    return {"ok": True}
+
+# ── Category/tag endpoints ─────────────────────────────────────
 @app.get("/api/categories")
-def categories():
+async def categories():
     return db.get_categories()
 
 @app.get("/api/tags")
-def tags():
+async def tags():
     return db.get_tags()
 
-# ── Sourdough log endpoints ───────────────────────────────────────────────────
-
-@app.get("/api/sourdough/log")
-def get_log():
-    return db.get_log_entries()
-
-@app.post("/api/sourdough/log")
-async def create_log(request: Request, _=Depends(require_auth)):
-    data = await request.json()
-    entry_id = db.create_log_entry(data)
-    return {"id": entry_id}
-
-@app.put("/api/sourdough/log/{entry_id}")
-async def update_log(entry_id: int, request: Request, _=Depends(require_auth)):
-    data = await request.json()
-    if not db.get_log_entry(entry_id):
-        raise HTTPException(status_code=404, detail="Entry not found")
-    db.update_log_entry(entry_id, data)
-    return {"ok": True}
-
-@app.delete("/api/sourdough/log/{entry_id}")
-def delete_log(entry_id: int, _=Depends(require_auth)):
-    if not db.get_log_entry(entry_id):
-        raise HTTPException(status_code=404, detail="Entry not found")
-    db.delete_log_entry(entry_id)
-    return {"ok": True}
-
-# ── Run ───────────────────────────────────────────────────────────────────────
-
+# ── Entry point ────────────────────────────────────────────────
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=cfg.get("port", 5050))
-    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=None)
     args = parser.parse_args()
-    uvicorn.run("app:app", host=args.host, port=args.port, reload=False)
+    port = args.port or config['port']
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=False)

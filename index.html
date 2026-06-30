@@ -20,7 +20,10 @@
     <div class="header-controls">
       <span class="zoom-label">Zoom</span>
       <input id="zoom-slider" type="range" min="0.8" max="1.4" step="0.05" value="1" />
-      <div id="login-bar" class="login-bar"></div>
+      <div class="login-bar">
+        <span id="login-status"></span>
+        <button id="login-btn" class="btn-small">Login</button>
+      </div>
     </div>
   </div>
 </header>
@@ -31,30 +34,84 @@
   </div>
 </nav>
 
-<!-- Sourdough sub-tabs (hidden unless Sourdough is active) -->
-<div id="sourdough-subtabs" class="sourdough-subtabs" style="display:none">
-  <button class="subtab-btn active" id="subtab-recipes" onclick="showRecipesSubtab()">Recipes</button>
-  <button class="subtab-btn" id="subtab-log" onclick="showLogSubtab()">Bake Log</button>
-</div>
-
 <div class="main-content">
+  <div class="admin-bar" id="admin-bar" style="display:none">
+    <button class="btn-add" id="add-recipe-btn">&#xFF0B; Add Recipe</button>
+  </div>
   <div id="tag-bar"></div>
   <p class="results-count" id="results-count"></p>
   <div id="recipe-grid"></div>
-  <!-- Sourdough log (hidden by default) -->
-  <div id="log-section" style="display:none"></div>
+
+  <!-- Sourdough log section (shown when Sourdough tab active) -->
+  <div id="sourdough-section" style="display:none">
+    <div class="sub-tab-bar">
+      <button class="sub-tab active" data-view="recipes" id="sub-recipes">Recipes</button>
+      <button class="sub-tab" data-view="log" id="sub-log">Bake Log</button>
+    </div>
+    <div id="log-section" style="display:none">
+      <div id="add-log-area"></div>
+      <div id="log-table-wrap"></div>
+    </div>
+  </div>
 </div>
 
-<!-- Login modal -->
-<div id="login-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)hideLoginModal()">
+<!-- Login Modal -->
+<div id="login-modal" class="modal-overlay" style="display:none">
   <div class="modal-box">
-    <h3>Edit Mode</h3>
-    <input id="login-pwd" type="password" placeholder="Password" class="modal-input"
-      onkeydown="if(event.key==='Enter')doLogin()" />
-    <p id="login-error" class="modal-error"></p>
-    <div class="modal-btns">
-      <button class="save-btn" onclick="doLogin()">Log in</button>
-      <button class="cancel-btn" onclick="hideLoginModal()">Cancel</button>
+    <h2 class="modal-title">Login</h2>
+    <div id="login-error" class="form-error" style="display:none"></div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" class="form-input" placeholder="Password" />
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" id="login-submit">Login</button>
+      <button class="btn-secondary" id="login-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Recipe Modal -->
+<div id="add-recipe-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box modal-wide">
+    <h2 class="modal-title">Add Recipe</h2>
+    <div class="form-group">
+      <label>Title *</label>
+      <input type="text" id="nr-title" class="form-input" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category *</label>
+        <input type="text" id="nr-category" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Yield</label>
+        <input type="text" id="nr-yield" class="form-input" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Tags (comma separated)</label>
+      <input type="text" id="nr-tags" class="form-input" />
+    </div>
+    <div class="form-group">
+      <label>Image URL</label>
+      <input type="text" id="nr-image" class="form-input" />
+    </div>
+    <div class="form-group">
+      <label>Ingredients (one per line, use "# Section Name" for subsections)</label>
+      <textarea id="nr-ingredients" class="form-textarea" rows="6"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Instructions</label>
+      <textarea id="nr-instructions" class="form-textarea" rows="5"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="nr-notes" class="form-textarea" rows="2"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" id="nr-submit">Save Recipe</button>
+      <button class="btn-secondary" id="nr-cancel">Cancel</button>
     </div>
   </div>
 </div>

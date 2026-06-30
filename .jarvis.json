@@ -1,7 +1,6 @@
 {
   "id": "dans-recipes",
   "name": "Dan's Recipes",
-  "description": "Personal recipe book — searchable, printable, with category and tag filtering",
   "category": "standalone",
   "status": { "prod": "live", "dev": "live" },
   "deploy": {

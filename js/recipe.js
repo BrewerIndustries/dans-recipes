@@ -51,7 +51,7 @@ function render(r) {
   const lastMade = madeLog.length ? madeLog[0].made_on : null;
   const madeStatusHtml = madeCount === 0
     ? `<span class="made-status never">Never made</span>`
-    : `<span class="made-status made">Made ${madeCount} time${madeCount===1?'':'s'} · last ${lastMade}</span>`;
+    : `<span class="made-status made">Made ${madeCount} time${madeCount===1?'':'s'}${lastMade ? ' · last ' + lastMade : ''}</span>`;
 
   content.innerHTML = `
     <div class="recipe-detail-toolbar">
@@ -94,7 +94,7 @@ function render(r) {
 function renderMadeLogHtml() {
   const rows = madeLog.map(e => `
     <div class="log-entry">
-      <span class="log-entry-date">${e.made_on}</span>
+      <span class="log-entry-date">${e.made_on || '—'}</span>
       ${e.notes ? `<span class="log-entry-notes">${esc(e.notes)}</span>` : ''}
       <button class="log-entry-del" data-id="${e.id}" data-type="made" title="Remove">✕</button>
     </div>`).join('');
@@ -112,7 +112,7 @@ function renderMadeFormHtml() {
   const today = new Date().toISOString().split('T')[0];
   return `
     <form class="inline-log-form" id="made-form">
-      <input type="date" name="made_on" value="${today}" required>
+      <input type="date" name="made_on" value="${today}" placeholder="Date (optional)">
       <input type="text" name="notes" placeholder="Notes (optional)" style="flex:1">
       <button type="submit" class="save-btn">Save</button>
       <button type="button" class="cancel-btn" id="cancel-made-btn">Cancel</button>
@@ -168,7 +168,7 @@ function refreshMadeStatus() {
     el.textContent = 'Never made';
   } else {
     el.className = 'made-status made';
-    el.textContent = `Made ${madeCount} time${madeCount===1?'':'s'} · last ${lastMade}`;
+    el.textContent = `Made ${madeCount} time${madeCount===1?'':'s'}${lastMade ? ' · last ' + lastMade : ''}`;
   }
 }
 

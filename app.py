@@ -122,10 +122,7 @@ async def add_made(id: str, request: Request):
     if not db.get_recipe(id):
         raise HTTPException(status_code=404, detail="Not found")
     data = await request.json()
-    made_on = data.get("made_on")
-    if not made_on:
-        raise HTTPException(status_code=400, detail="made_on required")
-    entry_id = db.add_made_entry(id, made_on, data.get("notes"))
+    entry_id = db.add_made_entry(id, data.get("made_on") or None, data.get("notes"))
     return {"id": entry_id}
 
 @app.delete("/api/recipes/{id}/made/{entry_id}")

@@ -7,11 +7,18 @@ zoomSlider.addEventListener('input', () => {
 
 const id      = window.location.pathname.split('/').pop();
 const content = document.getElementById('recipe-content');
+const isNew   = id === 'new';
 let currentRecipe = null;
 let madeLog = [];
 let comments = [];
 
 async function loadRecipe() {
+  if (isNew) {
+    document.title = 'New Recipe — Dan\'s Recipes';
+    currentRecipe = { id:'', title:'', category:'Mains', tags:[], yield:'', image:'', sections:[], instructions:'', variations:[], notes:'', source_url:'', source_image:'' };
+    enterEditMode();
+    return;
+  }
   if (!id) { showError('No recipe specified.'); return; }
   try {
     const [recipeRes, madeRes, commentsRes] = await Promise.all([
@@ -273,11 +280,11 @@ function enterEditMode() {
   content.innerHTML = `
     <form class="edit-form" onsubmit="saveEdits(event)">
       <div class="edit-form-header">
-        <h2>Edit Recipe</h2>
+        <h2>${isNew ? 'New Recipe' : 'Edit Recipe'}</h2>
         <div class="edit-form-btns">
           <button type="submit" class="save-btn">Save</button>
-          <button type="button" class="cancel-btn" onclick="cancelEdit()">Cancel</button>
-          <button type="button" class="delete-btn" onclick="showDeleteConfirm()">Delete</button>
+          ${isNew ? '' : '<button type="button" class="cancel-btn" onclick="cancelEdit()">Cancel</button>'}
+          ${isNew ? '' : '<button type="button" class="delete-btn" onclick="showDeleteConfirm()">Delete</button>'}
         </div>
       </div>
       <div class="edit-grid">
@@ -288,12 +295,13 @@ function enterEditMode() {
         <label>Yield<input type="text" name="yield" value="${esc(r.yield||'')}"></label>
         <label class="edit-wide">Tags (comma separated)<input type="text" name="tags" value="${esc((r.tags||[]).join(', '))}"></label>
         <label class="edit-wide">Recipe Photo
-          <small>Paste a URL or upload a file — upload overwrites the URL.</small>
+          <small>Paste a URL, upload a file, or fetch from the source URL — upload overwrites the URL field.</small>
           <div class="image-input-row">
             <input type="text" name="image" placeholder="https://…" value="${esc(r.image||'')}">
             <label class="upload-btn">Upload <input type="file" name="image_file" accept="image/*" style="display:none"></label>
+            ${!isNew && r.source_url ? `<button type="button" class="upload-btn" id="fetch-photo-btn" onclick="fetchPhoto()">↓ Fetch</button>` : ''}
           </div>
-          ${r.image ? `<img class="edit-image-preview" src="${esc(r.image)}" alt="current photo">` : ''}
+          ${r.image ? `<img class="edit-image-preview" id="edit-image-preview" src="${esc(r.image)}" alt="current photo">` : '<img class="edit-image-preview" id="edit-image-preview" style="display:none">'}
         </label>
         <label class="edit-wide">Ingredients
           <small>One per line. Start a section with [Section Name].</small>
@@ -338,11 +346,18 @@ function parseVariations(text) {
   });
 }
 
+function slugify(title) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
 async function saveEdits(evt) {
   evt.preventDefault();
   const form = evt.target;
+  const title = form.title.value.trim();
+  if (!title) { alert('Title is required.'); return; }
+
   const data = {
-    title:        form.title.value.trim(),
+    title,
     category:     form.category.value,
     yield:        form.yield.value.trim()||null,
     image:        form.image.value.trim(),
@@ -355,16 +370,37 @@ async function saveEdits(evt) {
     source_image: currentRecipe.source_image||null,
   };
 
-  // Upload recipe photo first if a file was chosen — overwrites URL field
+  if (isNew) {
+    // Create — generate slug, POST
+    const slug = slugify(title);
+    const checkRes = await fetch(`/api/recipes/${slug}`);
+    data.id = checkRes.ok ? `${slug}-${Date.now()}` : slug;
+
+    // Upload image file before creating (need a placeholder POST first, then upload)
+    const createRes = await fetch('/api/recipes', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data),
+    });
+    if (!createRes.ok) { alert('Save failed.'); return; }
+    const { id: newId } = await createRes.json();
+
+    // Upload recipe image if provided
+    const imageFile = form.image_file.files[0];
+    if (imageFile) {
+      const fd = new FormData(); fd.append('file', imageFile);
+      const imgRes = await fetch(`/api/recipes/${newId}/image`, {method:'POST', body:fd});
+      if (imgRes.ok) { const d = await imgRes.json(); data.image = d.url; await fetch(`/api/recipes/${newId}`, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,id:newId})}); }
+    }
+    window.location.href = `/recipe/${newId}`;
+    return;
+  }
+
+  // Edit — upload image first if chosen, then PUT
   const imageFile = form.image_file.files[0];
   if (imageFile) {
     const fd = new FormData();
     fd.append('file', imageFile);
     const imgRes = await fetch(`/api/recipes/${id}/image`, {method:'POST', body:fd});
-    if (imgRes.ok) {
-      const imgData = await imgRes.json();
-      data.image = imgData.url;
-    }
+    if (imgRes.ok) { const imgData = await imgRes.json(); data.image = imgData.url; }
   }
 
   const res = await fetch(`/api/recipes/${id}`, {
@@ -386,6 +422,25 @@ async function saveEdits(evt) {
 
   currentRecipe = {...currentRecipe, ...data};
   render(currentRecipe);
+}
+
+async function fetchPhoto() {
+  const btn = document.getElementById('fetch-photo-btn');
+  btn.textContent = '…'; btn.disabled = true;
+  try {
+    const res = await fetch(`/api/recipes/${id}/fetch-photo`, {method:'POST'});
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail||'failed'); }
+    const { url } = await res.json();
+    document.querySelector('input[name="image"]').value = url;
+    const preview = document.getElementById('edit-image-preview');
+    if (preview) { preview.src = url; preview.style.display = ''; }
+    btn.textContent = '✓ Done';
+  } catch(e) {
+    alert(`Could not fetch photo: ${e.message}`);
+    btn.textContent = '↓ Fetch';
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 function showDeleteConfirm() {

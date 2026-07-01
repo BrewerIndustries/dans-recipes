@@ -8,6 +8,7 @@ const ALL_CATEGORIES = [
 let allRecipes = [];
 let activeCategory = 'All';
 let activeTag = null;
+let filterNeverMade = false;
 let fuse = null;
 
 const grid        = document.getElementById('recipe-grid');
@@ -26,7 +27,20 @@ async function init() {
   buildCategoryTabs(ALL_CATEGORIES);
   buildTagBar();
   renderGrid();
-  fuse = new Fuse(allRecipes, { keys: ['title','tags','category'], threshold: 0.35, includeScore: true });
+  fuse = new Fuse(allRecipes, {
+    keys: [
+      { name: 'title',                weight: 1.0 },
+      { name: 'tags',                 weight: 0.8 },
+      { name: 'category',             weight: 0.6 },
+      { name: 'instructions',         weight: 0.5 },
+      { name: 'notes',                weight: 0.5 },
+      { name: 'sections.ingredients', weight: 0.6 },
+      { name: 'sections.name',        weight: 0.4 },
+    ],
+    threshold: 0.35,
+    includeScore: true,
+    ignoreLocation: true,
+  });
   searchInput.addEventListener('input', renderGrid);
 }
 
@@ -47,6 +61,12 @@ function buildCategoryTabs(categories) {
     });
     nav.appendChild(btn);
   });
+}
+
+function toggleNeverMade() {
+  filterNeverMade = !filterNeverMade;
+  document.getElementById('never-made-btn').classList.toggle('active', filterNeverMade);
+  renderGrid();
 }
 
 function setCategory(cat) {
@@ -255,6 +275,7 @@ function renderGrid() {
   if (query && fuse) results = fuse.search(query).map(r=>r.item);
   if (activeCategory!=='All') results = results.filter(r=>r.category===activeCategory);
   if (activeTag) results = results.filter(r=>(r.tags||[]).includes(activeTag));
+  if (filterNeverMade) results = results.filter(r=>!r.made_count || r.made_count===0);
   countEl.textContent = results.length===1?'1 recipe':`${results.length} recipes`;
   grid.innerHTML = '';
   if (!results.length) { grid.innerHTML='<div class="empty-state"><p>No recipes found.</p></div>'; return; }

@@ -1,5 +1,6 @@
-import argparse, os, shutil
+import argparse, os, shutil, json
 from pathlib import Path
+import urllib.request, urllib.parse
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -142,6 +143,43 @@ async def upload_recipe_image(id: str, file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, f)
     url = f"/recipe-images/{id}{suffix}"
     db.update_recipe(id, {**db.get_recipe(id), 'image': url})
+    return {"url": url}
+
+# ── Fetch photo from source URL via Microlink ─────────────────
+@app.post("/api/recipes/{id}/fetch-photo")
+async def fetch_photo(id: str):
+    recipe = db.get_recipe(id)
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Not found")
+    source_url = recipe.get("source_url")
+    if not source_url:
+        raise HTTPException(status_code=400, detail="Recipe has no source URL — add one first")
+    # Ask Microlink for the og:image
+    try:
+        ml_url = f"https://api.microlink.io?url={urllib.parse.quote(source_url, safe='')}"
+        req = urllib.request.Request(ml_url, headers={"User-Agent": "dans-recipes/1.0"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            payload = json.loads(r.read())
+        img_url = (payload.get("data") or {}).get("image", {})
+        if isinstance(img_url, dict):
+            img_url = img_url.get("url")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Microlink error: {e}")
+    if not img_url:
+        raise HTTPException(status_code=404, detail="No image found at that URL")
+    # Download the image
+    try:
+        req = urllib.request.Request(img_url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            content_type = r.headers.get("content-type", "image/jpeg")
+            ext = ".png" if "png" in content_type else ".webp" if "webp" in content_type else ".jpg"
+            dest = RECIPE_IMAGES_DIR / f"{id}{ext}"
+            with dest.open("wb") as f:
+                shutil.copyfileobj(r, f)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Image download failed: {e}")
+    url = f"/recipe-images/{id}{ext}"
+    db.update_recipe(id, {**recipe, "image": url})
     return {"url": url}
 
 # ── Made log endpoints ────────────────────────────────────────

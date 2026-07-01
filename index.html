@@ -38,7 +38,13 @@
 
 <div class="main-content">
   <div id="tag-bar"></div>
-  <p class="results-count" id="results-count"></p>
+  <div class="results-toolbar">
+    <p class="results-count" id="results-count"></p>
+    <div class="results-actions">
+      <button class="filter-btn" id="never-made-btn" onclick="toggleNeverMade()">Never Made</button>
+      <a href="/recipe/new" class="btn-new-recipe">+ New Recipe</a>
+    </div>
+  </div>
   <div id="recipe-grid"></div>
   <div id="log-section" style="display:none"></div>
 </div>

@@ -22,6 +22,7 @@ zoomSlider.addEventListener('input', () => {
 });
 
 async function init() {
+  await initAuth();
   const recipesRes = await fetch('/api/recipes');
   allRecipes = await recipesRes.json();
   buildCategoryTabs(ALL_CATEGORIES);
@@ -299,6 +300,92 @@ function renderGrid() {
       </div>
       ${thumbHtml}`;
     grid.appendChild(card);
+  });
+}
+
+// Called by auth.js when login/logout changes state
+function onAuthChange() { /* auth-only elements already toggled by _renderAuthSlots */ }
+
+// ── Tag Manager ───────────────────────────────────────────────
+async function showTagManager() {
+  const res = await fetch('/api/recipes');
+  const recipes = await res.json();
+  const freq = {};
+  recipes.forEach(r => (r.tags||[]).forEach(t => { freq[t] = (freq[t]||0)+1; }));
+  let sorted = Object.entries(freq).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0]));
+
+  const overlay = document.createElement('div');
+  overlay.className = 'source-modal-overlay';
+  overlay.id = 'tag-manager';
+  overlay.innerHTML = `
+    <div class="source-modal-box tag-mgr-box">
+      <div class="source-modal-header">
+        <span class="source-modal-title">Manage Tags (${sorted.length})</span>
+        <button class="source-modal-close" onclick="document.getElementById('tag-manager').remove()">✕</button>
+      </div>
+      <div class="tag-mgr-search-row">
+        <input id="tag-mgr-q" class="tag-mgr-input" type="search" placeholder="Filter tags…">
+      </div>
+      <div class="source-modal-body tag-mgr-body" id="tag-mgr-body"></div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+
+  function renderRows(list) {
+    const body = document.getElementById('tag-mgr-body');
+    if (!list.length) { body.innerHTML = '<p class="log-empty">No tags match.</p>'; return; }
+    body.innerHTML = list.map(([tag, cnt]) => `
+      <div class="tag-mgr-row" data-tag="${encodeURIComponent(tag)}">
+        <span class="tag-mgr-name">${tag}</span>
+        <span class="tag-mgr-count">${cnt} recipe${cnt===1?'':'s'}</span>
+        <button class="tag-row-btn" data-action="rename">Rename</button>
+        <button class="tag-row-btn tag-row-del" data-action="delete">✕</button>
+      </div>`).join('');
+  }
+  renderRows(sorted);
+
+  document.getElementById('tag-mgr-q').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    renderRows(sorted.filter(([t]) => t.includes(q)));
+  });
+
+  document.getElementById('tag-mgr-body').addEventListener('click', async e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const row = btn.closest('.tag-mgr-row');
+    const tag = decodeURIComponent(row.dataset.tag);
+    const action = btn.dataset.action;
+
+    if (action === 'rename') {
+      const nameEl = row.querySelector('.tag-mgr-name');
+      nameEl.innerHTML = `<input class="tag-mgr-edit-input" value="${tag}" type="text">`;
+      btn.textContent = 'Save'; btn.dataset.action = 'save';
+      row.querySelector('[data-action="delete"]').style.display = 'none';
+      row.querySelector('.tag-mgr-edit-input').focus();
+    } else if (action === 'save') {
+      const newTag = row.querySelector('.tag-mgr-edit-input').value.trim().toLowerCase();
+      if (!newTag || newTag === tag) { document.getElementById('tag-manager').remove(); showTagManager(); return; }
+      const res = await authFetch('/api/tags/rename', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({old:tag, new:newTag}) });
+      if (res.ok) {
+        sorted = sorted.map(([t,c]) => t===tag ? [newTag, c] : [t,c]);
+        // merge counts if newTag already existed
+        const counts = {};
+        sorted.forEach(([t,c]) => { counts[t] = (counts[t]||0)+c; });
+        sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+        renderRows(sorted);
+        allRecipes = await (await fetch('/api/recipes')).json();
+        buildTagBar(); renderGrid();
+      }
+    } else if (action === 'delete') {
+      if (!confirm(`Remove tag "${tag}" from all recipes?`)) return;
+      const res = await authFetch(`/api/tags/${encodeURIComponent(tag)}`, { method:'DELETE' });
+      if (res.ok) {
+        sorted = sorted.filter(([t]) => t !== tag);
+        renderRows(sorted);
+        allRecipes = await (await fetch('/api/recipes')).json();
+        buildTagBar(); renderGrid();
+      }
+    }
   });
 }
 

@@ -1,8 +1,8 @@
-import argparse, os, shutil, json
+import argparse, os, shutil, json, secrets
 from pathlib import Path
 import urllib.request, urllib.parse
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Depends
+from fastapi.responses import HTMLResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -31,7 +31,37 @@ db.init_db()
 
 app = FastAPI(title="Dan's Recipes")
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"], allow_credentials=True)
+
+# ── Auth ──────────────────────────────────────────────────────
+_sessions: set[str] = set()
+
+def require_auth(request: Request):
+    token = request.cookies.get("session")
+    if not token or token not in _sessions:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+@app.post("/api/auth/login")
+async def auth_login(request: Request, response: Response):
+    data = await request.json()
+    if data.get("password") != config["admin_password"]:
+        raise HTTPException(status_code=401, detail="Wrong password")
+    token = secrets.token_hex(32)
+    _sessions.add(token)
+    response.set_cookie("session", token, httponly=True, samesite="lax", max_age=86400 * 30)
+    return {"ok": True}
+
+@app.post("/api/auth/logout")
+async def auth_logout(request: Request, response: Response):
+    token = request.cookies.get("session")
+    _sessions.discard(token)
+    response.delete_cookie("session")
+    return {"ok": True}
+
+@app.get("/api/auth/me")
+async def auth_me(request: Request):
+    token = request.cookies.get("session")
+    return {"loggedIn": bool(token and token in _sessions)}
 
 SOURCE_IMAGES_DIR = Path(config['db_path']).parent / "source-images"
 RECIPE_IMAGES_DIR = Path(config['db_path']).parent / "recipe-images"
@@ -71,13 +101,13 @@ async def get_recipe(id: str):
         raise HTTPException(status_code=404, detail="Not found")
     return r
 
-@app.post("/api/recipes")
+@app.post("/api/recipes", dependencies=[Depends(require_auth)])
 async def create_recipe(request: Request):
     data = await request.json()
     id = db.create_recipe(data)
     return {"id": id}
 
-@app.put("/api/recipes/{id}")
+@app.put("/api/recipes/{id}", dependencies=[Depends(require_auth)])
 async def update_recipe(id: str, request: Request):
     data = await request.json()
     if not db.get_recipe(id):
@@ -85,7 +115,7 @@ async def update_recipe(id: str, request: Request):
     db.update_recipe(id, data)
     return {"ok": True}
 
-@app.delete("/api/recipes/{id}")
+@app.delete("/api/recipes/{id}", dependencies=[Depends(require_auth)])
 async def delete_recipe(id: str, request: Request):
     if not db.get_recipe(id):
         raise HTTPException(status_code=404, detail="Not found")
@@ -103,25 +133,25 @@ async def get_log():
             e['hydration'] = None
     return entries
 
-@app.post("/api/sourdough/log")
+@app.post("/api/sourdough/log", dependencies=[Depends(require_auth)])
 async def create_log(request: Request):
     data = await request.json()
     id = db.create_log_entry(data)
     return {"id": id}
 
-@app.put("/api/sourdough/log/{id}")
+@app.put("/api/sourdough/log/{id}", dependencies=[Depends(require_auth)])
 async def update_log(id: int, request: Request):
     data = await request.json()
     db.update_log_entry(id, data)
     return {"ok": True}
 
-@app.delete("/api/sourdough/log/{id}")
+@app.delete("/api/sourdough/log/{id}", dependencies=[Depends(require_auth)])
 async def delete_log(id: int, request: Request):
     db.delete_log_entry(id)
     return {"ok": True}
 
 # ── Image uploads ─────────────────────────────────────────────
-@app.post("/api/recipes/{id}/source-image")
+@app.post("/api/recipes/{id}/source-image", dependencies=[Depends(require_auth)])
 async def upload_source_image(id: str, file: UploadFile = File(...)):
     if not db.get_recipe(id):
         raise HTTPException(status_code=404, detail="Not found")
@@ -133,7 +163,7 @@ async def upload_source_image(id: str, file: UploadFile = File(...)):
     db.set_source_image(id, filename)
     return {"filename": filename}
 
-@app.post("/api/recipes/{id}/image")
+@app.post("/api/recipes/{id}/image", dependencies=[Depends(require_auth)])
 async def upload_recipe_image(id: str, file: UploadFile = File(...)):
     if not db.get_recipe(id):
         raise HTTPException(status_code=404, detail="Not found")
@@ -146,7 +176,7 @@ async def upload_recipe_image(id: str, file: UploadFile = File(...)):
     return {"url": url}
 
 # ── Fetch photo from source URL via Microlink ─────────────────
-@app.post("/api/recipes/{id}/fetch-photo")
+@app.post("/api/recipes/{id}/fetch-photo", dependencies=[Depends(require_auth)])
 async def fetch_photo(id: str):
     recipe = db.get_recipe(id)
     if not recipe:
@@ -187,7 +217,7 @@ async def fetch_photo(id: str):
 async def get_made(id: str):
     return db.get_made_log(id)
 
-@app.post("/api/recipes/{id}/made")
+@app.post("/api/recipes/{id}/made", dependencies=[Depends(require_auth)])
 async def add_made(id: str, request: Request):
     if not db.get_recipe(id):
         raise HTTPException(status_code=404, detail="Not found")
@@ -195,7 +225,7 @@ async def add_made(id: str, request: Request):
     entry_id = db.add_made_entry(id, data.get("made_on") or None, data.get("notes"))
     return {"id": entry_id}
 
-@app.delete("/api/recipes/{id}/made/{entry_id}")
+@app.delete("/api/recipes/{id}/made/{entry_id}", dependencies=[Depends(require_auth)])
 async def delete_made(id: str, entry_id: int):
     db.delete_made_entry(entry_id)
     return {"ok": True}
@@ -205,7 +235,7 @@ async def delete_made(id: str, entry_id: int):
 async def get_comments(id: str):
     return db.get_comments(id)
 
-@app.post("/api/recipes/{id}/comments")
+@app.post("/api/recipes/{id}/comments", dependencies=[Depends(require_auth)])
 async def add_comment(id: str, request: Request):
     if not db.get_recipe(id):
         raise HTTPException(status_code=404, detail="Not found")
@@ -216,7 +246,7 @@ async def add_comment(id: str, request: Request):
     comment_id = db.add_comment(id, comment)
     return {"id": comment_id}
 
-@app.delete("/api/recipes/{id}/comments/{comment_id}")
+@app.delete("/api/recipes/{id}/comments/{comment_id}", dependencies=[Depends(require_auth)])
 async def delete_comment(id: str, comment_id: int):
     db.delete_comment(comment_id)
     return {"ok": True}
@@ -229,6 +259,20 @@ async def categories():
 @app.get("/api/tags")
 async def tags():
     return db.get_tags()
+
+@app.post("/api/tags/rename", dependencies=[Depends(require_auth)])
+async def rename_tag(request: Request):
+    data = await request.json()
+    old, new = data.get("old", "").strip(), data.get("new", "").strip().lower()
+    if not old or not new:
+        raise HTTPException(status_code=400, detail="old and new required")
+    count = db.rename_tag(old, new)
+    return {"updated": count}
+
+@app.delete("/api/tags/{tag:path}", dependencies=[Depends(require_auth)])
+async def delete_tag(tag: str):
+    count = db.delete_tag(tag)
+    return {"updated": count}
 
 # ── Entry point ────────────────────────────────────────────────
 if __name__ == "__main__":

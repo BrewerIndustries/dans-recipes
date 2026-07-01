@@ -13,6 +13,7 @@ let madeLog = [];
 let comments = [];
 
 async function loadRecipe() {
+  await initAuth();
   if (isNew) {
     document.title = 'New Recipe — Dan\'s Recipes';
     currentRecipe = { id:'', title:'', category:'Mains', tags:[], yield:'', image:'', sections:[], instructions:'', variations:[], notes:'', source_url:'', source_image:'' };
@@ -69,7 +70,7 @@ function render(r) {
 
   content.innerHTML = `
     <div class="recipe-detail-toolbar">
-      <button class="edit-btn" onclick="enterEditMode()">✏ Edit</button>
+      ${isLoggedIn() ? '<button class="edit-btn" onclick="enterEditMode()">✏ Edit</button>' : ''}
     </div>
     <div class="recipe-hero">
       <div class="recipe-hero-text">
@@ -159,7 +160,7 @@ function bindMadeLogEvents() {
       e.preventDefault();
       const form = e.target;
       const made_on = dateCheck.checked ? form.made_on.value || null : null;
-      const res = await fetch(`/api/recipes/${id}/made`, {
+      const res = await authFetch(`/api/recipes/${id}/made`, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({made_on, notes: form.notes.value.trim()||null}),
@@ -178,7 +179,7 @@ function bindMadeLogEvents() {
     btn.addEventListener('click', async () => {
       if (!confirm('Remove this entry?')) return;
       const entryId = parseInt(btn.dataset.id);
-      const res = await fetch(`/api/recipes/${id}/made/${entryId}`, {method:'DELETE'});
+      const res = await authFetch(`/api/recipes/${id}/made/${entryId}`, {method:'DELETE'});
       if (res.ok) {
         madeLog = madeLog.filter(e => e.id !== entryId);
         document.getElementById('made-log-section').innerHTML = renderMadeLogHtml();
@@ -236,7 +237,7 @@ function bindCommentEvents() {
     document.getElementById('comment-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
-      const res = await fetch(`/api/recipes/${id}/comments`, {
+      const res = await authFetch(`/api/recipes/${id}/comments`, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({comment: form.comment.value.trim()}),
@@ -255,7 +256,7 @@ function bindCommentEvents() {
     btn.addEventListener('click', async () => {
       if (!confirm('Delete this comment?')) return;
       const commentId = parseInt(btn.dataset.id);
-      const res = await fetch(`/api/recipes/${id}/comments/${commentId}`, {method:'DELETE'});
+      const res = await authFetch(`/api/recipes/${id}/comments/${commentId}`, {method:'DELETE'});
       if (res.ok) {
         comments = comments.filter(c => c.id !== commentId);
         document.getElementById('comments-section').innerHTML = renderCommentsHtml();
@@ -377,7 +378,7 @@ async function saveEdits(evt) {
     data.id = checkRes.ok ? `${slug}-${Date.now()}` : slug;
 
     // Upload image file before creating (need a placeholder POST first, then upload)
-    const createRes = await fetch('/api/recipes', {
+    const createRes = await authFetch('/api/recipes', {
       method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data),
     });
     if (!createRes.ok) { alert('Save failed.'); return; }
@@ -387,8 +388,8 @@ async function saveEdits(evt) {
     const imageFile = form.image_file.files[0];
     if (imageFile) {
       const fd = new FormData(); fd.append('file', imageFile);
-      const imgRes = await fetch(`/api/recipes/${newId}/image`, {method:'POST', body:fd});
-      if (imgRes.ok) { const d = await imgRes.json(); data.image = d.url; await fetch(`/api/recipes/${newId}`, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,id:newId})}); }
+      const imgRes = await authFetch(`/api/recipes/${newId}/image`, {method:'POST', body:fd});
+      if (imgRes.ok) { const d = await imgRes.json(); data.image = d.url; await authFetch(`/api/recipes/${newId}`, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,id:newId})}); }
     }
     window.location.href = `/recipe/${newId}`;
     return;
@@ -399,11 +400,11 @@ async function saveEdits(evt) {
   if (imageFile) {
     const fd = new FormData();
     fd.append('file', imageFile);
-    const imgRes = await fetch(`/api/recipes/${id}/image`, {method:'POST', body:fd});
+    const imgRes = await authFetch(`/api/recipes/${id}/image`, {method:'POST', body:fd});
     if (imgRes.ok) { const imgData = await imgRes.json(); data.image = imgData.url; }
   }
 
-  const res = await fetch(`/api/recipes/${id}`, {
+  const res = await authFetch(`/api/recipes/${id}`, {
     method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data),
   });
   if (!res.ok) { alert('Save failed.'); return; }
@@ -413,7 +414,7 @@ async function saveEdits(evt) {
   if (sourceFile) {
     const fd = new FormData();
     fd.append('file', sourceFile);
-    const imgRes = await fetch(`/api/recipes/${id}/source-image`, {method:'POST', body:fd});
+    const imgRes = await authFetch(`/api/recipes/${id}/source-image`, {method:'POST', body:fd});
     if (imgRes.ok) {
       const imgData = await imgRes.json();
       data.source_image = imgData.filename;
@@ -428,7 +429,7 @@ async function fetchPhoto() {
   const btn = document.getElementById('fetch-photo-btn');
   btn.textContent = '…'; btn.disabled = true;
   try {
-    const res = await fetch(`/api/recipes/${id}/fetch-photo`, {method:'POST'});
+    const res = await authFetch(`/api/recipes/${id}/fetch-photo`, {method:'POST'});
     if (!res.ok) { const e = await res.json(); throw new Error(e.detail||'failed'); }
     const { url } = await res.json();
     document.querySelector('input[name="image"]').value = url;
@@ -468,7 +469,7 @@ function showDeleteConfirm() {
 }
 
 async function doDeleteRecipe() {
-  const res = await fetch(`/api/recipes/${id}`, {method:'DELETE'});
+  const res = await authFetch(`/api/recipes/${id}`, {method:'DELETE'});
   if (res.ok) window.location.href='/';
   else alert('Delete failed.');
 }

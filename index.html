@@ -20,6 +20,7 @@
     <div class="header-controls">
       <span class="zoom-label">Zoom</span>
       <input id="zoom-slider" type="range" min="0.8" max="1.4" step="0.05" value="1" />
+      <div class="auth-slot"></div>
     </div>
   </div>
 </header>
@@ -42,7 +43,8 @@
     <p class="results-count" id="results-count"></p>
     <div class="results-actions">
       <button class="filter-btn" id="never-made-btn" onclick="toggleNeverMade()">Never Made</button>
-      <a href="/recipe/new" class="btn-new-recipe">+ New Recipe</a>
+      <a href="/recipe/new" class="btn-new-recipe auth-only" style="display:none">+ New Recipe</a>
+      <button class="filter-btn auth-only" style="display:none" onclick="showTagManager()">Tags</button>
     </div>
   </div>
   <div id="recipe-grid"></div>
@@ -50,6 +52,7 @@
 </div>
 
 <script src="/js/fuse.min.js"></script>
+<script src="/js/auth.js"></script>
 <script src="/js/main.js"></script>
 </body>
 </html>

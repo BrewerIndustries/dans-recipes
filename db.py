@@ -206,6 +206,40 @@ def get_tags():
             pass
     return sorted(all_tags)
 
+def rename_tag(old: str, new: str) -> int:
+    with get_conn() as conn:
+        rows = conn.execute("SELECT id, tags FROM recipes").fetchall()
+        count = 0
+        for row in rows:
+            try:
+                tags = json.loads(row['tags'] or '[]')
+            except Exception:
+                continue
+            if old not in tags:
+                continue
+            updated = list(dict.fromkeys(new if t == old else t for t in tags))
+            conn.execute("UPDATE recipes SET tags=? WHERE id=?", [json.dumps(updated), row['id']])
+            count += 1
+        conn.commit()
+    return count
+
+def delete_tag(tag: str) -> int:
+    with get_conn() as conn:
+        rows = conn.execute("SELECT id, tags FROM recipes").fetchall()
+        count = 0
+        for row in rows:
+            try:
+                tags = json.loads(row['tags'] or '[]')
+            except Exception:
+                continue
+            if tag not in tags:
+                continue
+            conn.execute("UPDATE recipes SET tags=? WHERE id=?",
+                         [json.dumps([t for t in tags if t != tag]), row['id']])
+            count += 1
+        conn.commit()
+    return count
+
 def get_log_entries():
     with get_conn() as conn:
         rows = conn.execute("SELECT * FROM sourdough_log ORDER BY date_started DESC, id DESC").fetchall()
